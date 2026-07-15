@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Login = () => {
+const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 font-poppins">
@@ -21,10 +21,10 @@ const Login = () => {
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-center text-2xl font-bold text-gray-800 mb-2">
-            Welcome Back to <span className="text-blue-600">BPQReady</span>
+         <span className="text-blue-600">BPQReady</span>
           </h2>
           <p className="text-center text-gray-500 mb-8">
-            Access your account to continue your practice.
+            Admin Login
           </p>
 
           {/* Email Input */}
@@ -60,7 +60,7 @@ const Login = () => {
           </div>
 
           {/* Login Button */}
-          <Link to="/Dashboard" className="block">
+          <Link to="/AdminDashboard" className="block">
             <button className="w-full py-3 rounded-lg font-semibold transition-all duration-300 bg-blue-600 text-white hover:bg-blue-700 shadow-md">
               Log In
             </button>
@@ -79,4 +79,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

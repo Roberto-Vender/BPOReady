@@ -1,236 +1,259 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const HomePage = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
-  const features = [
-    {
-      icon: (
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      ),
-      title: "Endless AI Puzzles",
-      description: "Fresh, unique puzzles generated in real-time. Never solve the same riddle twice!",
-      color: "from-blue-500 to-cyan-400"
-    },
-    {
-      icon: (
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      ),
-      title: "Adaptive Difficulty",
-      description: "AI learns your skill level and adjusts puzzle difficulty for the perfect challenge.",
-      color: "from-purple-500 to-pink-500"
-    },
-    {
-      icon: (
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      ),
-      title: "Smart Hints & Explanations",
-      description: "Get intelligent hints that guide you without spoiling the solution.",
-      color: "from-green-500 to-emerald-400"
-    }
-  ];
-
-  const steps = [
-    {
-      number: "01",
-      title: "Choose Your Challenge",
-      description: "Pick from Single Player Journey, Logic Puzzles, or Endurance Mode",
-      icon: "🎮"
-    },
-    {
-      number: "02",
-      title: "Solve AI Puzzles",
-      description: "Test your wits with unique, AI-generated riddles and logic puzzles",
-      icon: "🧩"
-    },
-    {
-      number: "03",
-      title: "Earn & Improve",
-      description: "Score points, unlock achievements, and track your progress",
-      icon: "🏆"
-    }
-  ];
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 font-poppins">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
-        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
-      </div>
+    <div className="w-full font-poppins">
 
-      <div className="relative z-10">
-        <Header />
-
-        {/* Hero Section */}
-        <section className="container mx-auto px-4 pt-24 pb-16 text-center">
-          <div className={`max-w-4xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="gradient-text animate-gradient">Train Your Brain</span>
-              <br />
-              <span className="text-white">With AI-Powered Puzzles</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Experience <span className="text-cyan-400 font-semibold">endless unique puzzles</span>, riddles, and logic challenges 
-              powered by advanced AI. Never solve the same puzzle twice!
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link to="/Login" className="group">
-                <button className="relative px-10 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-xl text-lg transition-all duration-300 hover-lift shadow-2xl overflow-hidden">
-                  <span className="relative z-10 flex items-center gap-3">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
-                    Start Playing Free
-                  </span>
-                  <div className="absolute inset-0 animate-shimmer"></div>
-                </button>
-              </Link>
-              
-             
-            </div>
-
-            <div className="mt-12 text-gray-400 flex flex-wrap justify-center items-center gap-4">
-              
-              <div className="hidden sm:block">•</div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span>Save & Resume Anytime</span>
-              </div>
-              <div className="hidden sm:block">•</div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span>Mobile Friendly</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="container mx-auto px-4 py-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl text-white md:text-5xl font-bold mb-4">
-              Why Choose <span className="gradient-text">Puzzle Master?</span>
-            </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              The ultimate brain training experience with cutting-edge AI technology
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className={`glass rounded-2xl p-8 transition-all duration-500 hover-lift ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
-                style={{ transitionDelay: `${index * 200}ms` }}
+      {/* Role Selection Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-800">Login As</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 mx-auto animate-float`}>
-                  <div className="text-white">
-                    {feature.icon}
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4 text-center">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-300 text-center leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-        {/* How to Play Section */}
-        <section id="how-to-play" className="bg-gradient-to-b from-gray-900/50 to-transparent py-20">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl text-white md:text-5xl font-bold mb-4">
-                How to <span className="gradient-text">Get Started</span>
-              </h2>
-              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                Start your puzzle journey in just three simple steps
+            <p className="text-sm text-gray-500 mb-6 text-center">Please select how you want to log in.</p>
+
+            {/* Role Buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => { setShowModal(false); navigate("/Login"); }}
+                className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Login as User
+              </button>
+
+              <button
+                onClick={() => { setShowModal(false); navigate("/AdminLogin"); }}
+                className="w-full py-3 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900 transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Login as Admin
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Header */}
+      <nav className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-gray-800">BPQReady</span>
+          </div>
+
+          {/* Nav Links */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link to="/" className="text-green-500 font-semibold">Home</Link>
+            <Link to="#features" className="text-gray-600 hover:text-gray-800">Features</Link>
+            <Link to="#how-it-works" className="text-gray-600 hover:text-gray-800">How It Works</Link>
+            <Link to="#about" className="text-gray-600 hover:text-gray-800">About</Link>
+            <Link to="#contact" className="text-gray-600 hover:text-gray-800">Contact</Link>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-6 py-2 text-blue-600 font-semibold hover:text-blue-700"
+            >
+              Log In
+            </button>
+            <Link to="/Register">
+              <button className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700">
+                Sign Up
+              </button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="bg-gray-50 py-16 md:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
+            Prepare for BPQ Interviews with Confidence
+          </h1>
+          <p className="text-lg text-gray-600 mb-10 max-w-3xl mx-auto">
+            Practice paragraph reading, improve your speech, and train for mock interviews with AI-powered feedback.
+          </p>
+          <Link to="/Dashboard">
+            <button className="px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 shadow-md transition-all">
+              Get Started
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Key Features Section */}
+      <section id="features" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Key Features</h2>
+            <p className="text-lg text-gray-600">
+              Discover the core tools of BPQReady designed to help BPQ applicants improve their communication skills, build confidence, and prepare effectively for job interviews.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-blue-50 rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="flex justify-center mb-4">
+                <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Paragraph Reading Practice</h3>
+              <p className="text-gray-600 text-sm">Practice reading predefined passages in Easy, Medium, and Hard levels to improve fluency, pronunciation, and speech delivery.</p>
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="flex justify-center mb-4">
+                <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c3.314 0 6-1.343 6-3s-2.686-3-6-3-6 1.343-6 3 2.686 3 6 3zM12 8v7m0 0c-3.314 0-6 1.343-6 3s2.686 3 6 3 6-1.343 6-3-2.686-3-6-3zm6-8v10" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Speech Analysis</h3>
+              <p className="text-gray-600 text-sm">Analyze recorded responses to detect filler words, pacing, grammar issues and other common speech flows.</p>
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="flex justify-center mb-4">
+                <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Mock Interview Simulation</h3>
+              <p className="text-gray-600 text-sm">Practice answering BPQ interview questions in a structured interview environment.</p>
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="flex justify-center mb-4">
+                <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Performance Summary</h3>
+              <p className="text-gray-600 text-sm">View feedback, evaluation results, and progress reports to monitor improvement over time.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-800 mb-2">
+              How It <span className="text-blue-600">Works?</span>
+            </h2>
+            <p className="text-lg text-gray-600">
+              BPQReady guides BPQ applicants through a simple step-by-step process to improve communication skills and prepare for interviews effectively.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 max-w-5xl mx-auto">
+            <div className="flex flex-col items-center text-center flex-1">
+              <div className="w-24 h-24 rounded-full bg-blue-400 flex items-center justify-center text-white text-4xl font-bold mb-6">1</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Practice Your Skills</h3>
+              <p className="text-gray-600">Choose a training module such as paragraph reading or mock interview simulation to start improving your communication.</p>
+            </div>
+            <div className="hidden md:block w-12 h-1 bg-gray-300"></div>
+            <div className="flex flex-col items-center text-center flex-1">
+              <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-4xl font-bold mb-6">2</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Record and Submit Responses</h3>
+              <p className="text-gray-600">Speak your answers using the recording feature and submit your responses for analysis.</p>
+            </div>
+            <div className="hidden md:block w-12 h-1 bg-gray-300"></div>
+            <div className="flex flex-col items-center text-center flex-1">
+              <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center text-white text-4xl font-bold mb-6">3</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Receive Feedback</h3>
+              <p className="text-gray-600">Get instant feedback on your speech, including grammar, filler words, pacing, and confidence, and use it to improve your performance.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About Us Section */}
+      <section id="about" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center gap-12 max-w-5xl mx-auto">
+            <div className="md:w-1/2">
+              <div className="bg-blue-100 rounded-lg p-8 flex items-center justify-center h-80">
+                <svg className="w-full h-full text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+                </svg>
+              </div>
+            </div>
+            <div className="md:w-1/2">
+              <h2 className="text-4xl font-bold text-gray-800 mb-6">About Us</h2>
+              <p className="text-lg text-gray-600 leading-relaxed mb-6">
+                BPQReady is a web-based interview coaching system that helps BPQ applicants improve their communication skills through speech analysis, practice modules, and automated feedback.
+              </p>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Our platform combines the latest in AI-driven speech analysis with intuitive practice tools to help you prepare confidently for your BPQ interviews.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="relative max-w-5xl mx-auto">
-              {/* Connection Line */}
-              <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 -translate-y-1/2 z-0"></div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                {steps.map((step, index) => (
-                  <div 
-                    key={index}
-                    className="text-center animate-fade-in"
-                    style={{ animationDelay: `${index * 300}ms` }}
-                  >
-                    <div className="relative inline-block mb-6">
-                      <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 flex items-center justify-center text-3xl">
-                        {step.icon}
-                      </div>
-                      <div className="absolute -top-3 -right-3 w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-lg">
-                        {step.number}
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-3">
-                      {step.title}
-                    </h3>
-                    <p className="text-gray-300 leading-relaxed">
-                      {step.description}
-                    </p>
-                  </div>
-                ))}
+      {/* Footer */}
+      <footer id="contact" className="bg-blue-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-8">
+            <div className="flex items-center gap-2 mb-6 md:mb-0">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <span className="text-xl font-bold text-gray-800">BPQReady</span>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                <span className="text-gray-700 font-semibold">QuodSync</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-gray-700 font-semibold">QuodSync@gmail.com</span>
               </div>
             </div>
           </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="container mx-auto px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="glass rounded-3xl p-12 md:p-16 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-cyan-600/10"></div>
-              
-              <h2 className="text-4xl text-white md:text-5xl font-bold mb-6">
-                Ready to <span className="gradient-text">Challenge</span> Your Mind?
-              </h2>
-
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Link to="/Login">
-                  <button className="px-10 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-xl text-lg transition-all duration-300 hover-lift shadow-xl">
-                    Start Now →
-                  </button>
-                </Link>
-                
-              </div>
-              
-              <div className="mt-8 text-gray-400 text-sm">
-                <p>Play instantly • Progress saved automatically</p>
-              </div>
-            </div>
+          <div className="border-t border-gray-300 pt-6 text-center text-gray-600">
+            <p>© 2025 BPQReady. All rights reserved.</p>
           </div>
-        </section>
-
-        <Footer />
-      </div>
+        </div>
+      </footer>
     </div>
   );
 };

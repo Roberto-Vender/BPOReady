@@ -1,80 +1,151 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import NewHeader from "../components/NewHeader";
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-black to-gray-900 font-poppins">
-      <NewHeader />
-
-      {/* Title */}
-      <div className="text-center text-5xl font-bold mt-12 mb-4">
-        <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-          Welcome to Puzzle Master!
-        </span>
-      </div>
-
-      {/* Subtitle */}
-      <div className="text-center text-gray-300 text-xl mb-12">
-        Ready to challenge your brain?
-      </div>
-
-      {/* Boxes Section */}
-      <div className="flex justify-center gap-12 mt-8 flex-wrap px-4">
-        {/* SINGLE PLAYER */}
-        <div className="flex flex-col items-center bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl w-96 p-8 hover:scale-105 duration-300 hover-lift">
-          <div className="text-2xl font-bold text-cyan-400 mb-3">
-            Single Player Journey
+    <div className="flex min-h-screen bg-gray-50 font-poppins">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
+        {/* Logo */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span className="font-bold text-gray-800">BPQReady</span>
           </div>
+        </div>
 
-          <span className="text-gray-300 text-center leading-relaxed mb-8">
-            Solve at your own pace
-          </span>
-
-          <div className="my-6 p-4 bg-gradient-to-br from-gray-900/50 to-black/50 rounded-2xl border border-gray-700/30">
-            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M66.0916 34.9584V51.625M74.425 43.2917H57.7583M33.2041 16.1959H66.7916C72.5594 16.197 78.0905 18.489 82.1685 22.5678C86.2465 26.6466 88.5375 32.1781 88.5375 37.9459V72.3834C88.5375 81.0292 77.9833 85.2375 72.0291 78.9709L59.6291 65.9125H40.3625L28.3833 80.3292C22.6583 87.2209 11.4541 83.1709 11.4541 74.2167V37.9417C11.4552 32.1747 13.7467 26.6442 17.8246 22.5663C21.9025 18.4884 27.4371 16.197 33.2041 16.1959Z" stroke="#22d3ee" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M38.9083 43.2917C36.6071 43.2917 34.7416 41.4262 34.7416 39.125C34.7416 36.8239 36.6071 34.9584 38.9083 34.9584C41.2095 34.9584 43.075 36.8239 43.075 39.125C43.075 41.4262 41.2095 43.2917 38.9083 43.2917Z" fill="#22d3ee"/>
-              <path d="M29.7417 52.4583C27.4405 52.4583 25.575 50.5929 25.575 48.2917C25.575 45.9905 27.4405 44.125 29.7417 44.125C32.0428 44.125 33.9083 45.9905 33.9083 48.2917C33.9083 50.5929 32.0428 52.4583 29.7417 52.4583Z" fill="#22d3ee"/>
+        {/* Navigation Items */}
+        <nav className="p-4 space-y-2">
+          <Link to="/Dashboard" className="flex items-center gap-3 px-4 py-3 text-blue-600 bg-blue-50 rounded-lg">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M9 5h6" />
             </svg>
-          </div>
+            <span className="font-medium">Dashboard</span>
+          </Link>
 
-          <Link to="/ChoosePuzzle" className="mt-8 w-full">
-            <button className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-xl px-8 py-4 duration-300 transition-all hover-lift shadow-lg">
-              Play now
+          <Link to="/ParagraphReading" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747 0-6.002-4.5-10.747-10-10.747z" />
+            </svg>
+            <span>Paragraph Reading</span>
+          </Link>
+
+          <Link to="/MockInterview" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>Mock Interview</span>
+          </Link>
+
+          <Link to="/PracticeHistory" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Practice History</span>
+          </Link>
+
+          <Link to="/PerformanceSummary" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>Performance Summary</span>
+          </Link>
+        </nav>
+
+        {/* Bottom Section */}
+        <div className="absolute bottom-0 left-0 w-64 border-t border-gray-200 bg-white p-4 space-y-2">
+          <Link to="/Profile" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Profile</span>
+          </Link>
+
+          <Link to="/Login" className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Log out</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome, <span className="text-blue-600">Claudin!</span>
+          </h1>
+          <p className="text-gray-600">
+            Continue improving your communication and interview skills.
+          </p>
+        </div>
+
+        {/* Continue Practice Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Continue Practice</h2>
+          <p className="text-gray-600 mb-6">Resume your last activity or start a new session.</p>
+          <div className="flex gap-4">
+            <Link to="/ParagraphReading">
+              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                Go to Paragraph Reading
+              </button>
+            </Link>
+            <Link to="/MockInterview">
+              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                Start Mock Interview
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Activity</h2>
+          <ul className="space-y-2 text-gray-600">
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              Paragraph Reading - Easy Level Completed
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              Mock Interview (Initial) - 1 Session Completed
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              Paragraph Reading - Medium Level In Progress
+            </li>
+          </ul>
+        </div>
+
+        {/* Performance Summary Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Performance Summary</h2>
+          <ul className="space-y-2 text-gray-600 mb-6">
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              Filler Words: Moderate
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              Clarity: Good
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              Confidence: Improving
+            </li>
+          </ul>
+          <Link to="/PerformanceSummary">
+            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              View Full Summary
             </button>
           </Link>
         </div>
-
-        {/* ENDURANCE */}
-        <div className="flex flex-col items-center bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl w-96 p-8 hover:scale-105 duration-300 hover-lift">
-          <div className="text-2xl font-bold text-yellow-400 mb-3">
-            Endurance Challenge
-          </div>
-
-          <span className="text-gray-300 text-center leading-relaxed mb-8">
-            Continuous puzzles with increasing difficulty and timer
-          </span>
-
-          <div className="my-6 p-4 bg-gradient-to-br from-gray-900/50 to-black/50 rounded-2xl border border-gray-700/30">
-            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M66.0918 34.9584V51.625M74.4251 43.2917H57.7584M33.2043 16.1959H66.7918C72.5595 16.197 78.0906 18.489 82.1686 22.5678C86.2467 26.6466 88.5376 32.1781 88.5376 37.9459V72.3834C88.5376 81.0292 77.9834 85.2375 72.0293 78.9709L59.6293 65.9125H40.3626L28.3834 80.3292C22.6584 87.2209 11.4543 83.1709 11.4543 74.2167V37.9417C11.4554 32.1747 13.7468 26.6442 17.8247 22.5663C21.9026 18.4884 27.4372 16.197 33.2043 16.1959Z" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M38.9085 43.2917C36.6073 43.2917 34.7419 41.4262 34.7419 39.125C34.7419 36.8239 36.6073 34.9584 38.9085 34.9584C41.2097 34.9584 43.0752 36.8239 43.0752 39.125C43.0752 41.4262 41.2097 43.2917 38.9085 43.2917Z" fill="#fbbf24"/>
-              <path d="M29.7418 52.4583C27.4406 52.4583 25.5751 50.5929 25.5751 48.2917C25.5751 45.9905 27.4406 44.125 29.7418 44.125C32.043 44.125 33.9084 45.9905 33.9084 48.2917C33.9084 50.5929 32.043 52.4583 29.7418 52.4583Z" fill="#fbbf24"/>
-            </svg>
-          </div>
-
-          <Link to="/Endurance" className="mt-8 w-full">
-            <button className="w-full bg-gradient-to-r from-yellow-600 to-orange-500 hover:from-yellow-700 hover:to-orange-600 text-white font-semibold rounded-xl px-8 py-4 duration-300 transition-all hover-lift shadow-lg">
-              Play now
-            </button>
-          </Link>   
-        </div>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="text-center text-gray-400 mt-16 mb-12 px-4">
-        <p className="text-lg">Choose a game mode and start your puzzle adventure!</p>
       </div>
     </div>
   );

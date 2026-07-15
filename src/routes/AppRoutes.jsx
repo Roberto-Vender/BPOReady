@@ -3,21 +3,27 @@ import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login";
 import HomePage from "../pages/HomePage";
 import Dashboard from "../pages/Dashboard";
-import ChoosePuzzle from "../pages/ChoosePuzzle";
-import Riddles from "../pages/Riddles";
-import Correct from "../pages/Correct";
-import Incorrect from "../pages/Incorrect";
-import Logic from "../pages/Logic";
-import LogicCorrect from "../pages/LogicCorrect";
-import LogicIncorrect from "../pages/LogicIncorrect";
-import LogicSummary from "../pages/LogicSummary";
-import Endurance from "../pages/Endurance";
-import EnduranceCorrect from "../pages/EnduranceCorrect";
-import EnduranceIncorrect from "../pages/EnduranceIncorrect";
-import EnduranceSummary from "../pages/EnduranceSummary";
-import LeaderBoard from "../pages/LeaderBoard";
+import ParagraphReading from "../pages/ParagraphReading";
 import Register from "../pages/Register";
-import Summary from "../pages/Summary";
+import EasyLevelParagraphReading from "../pages/EasyLevelParagraphReading";
+import MediumLevelParagraphReading from "../pages/MediumLevelParagraphReading";
+import HardLevelParagraphReading from "../pages/HardLevelParagraphReading";
+import EasyLevelResult from "../pages/EasyLevelResult";
+import MediumLevelResult from "../pages/MediumLevelResult";
+import HardLevelResult from "../pages/HardLevelResult";
+import MockInterview from "../pages/MockInterview";
+import InitialInterview from "../pages/InitialInterview";
+import InitialInterviewRecording from "../pages/InitialInterviewRecording";
+import MockInterviewFeedback from "../pages/MockInterviewFeedback";
+import PracticeHistory from "../pages/PracticeHistory";
+import Profile from "../pages/Profile";
+import PerformanceSummary from "../pages/PerformanceSummary";
+import AdminLogin from "../pages/AdminLogin";
+import AdminDashboard from "../pages/AdminDashboard";
+import ManageInterviewQuestions from "../pages/ManageInterviewQuestions";
+import MonitorUsers from "../pages/MonitorUsers";
+import AdminProfile from "../pages/AdminProfile";
+
 
 export default function AppRoutes() {
   return (
@@ -26,21 +32,26 @@ export default function AppRoutes() {
       <Route path="/homepage" element={<HomePage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/choosepuzzle" element={<ChoosePuzzle />} />
-      <Route path="/riddles" element={<Riddles />} />
-      <Route path="/correct" element={<Correct />} />
-      <Route path="/incorrect" element={<Incorrect />} />
-      <Route path="/logic" element={<Logic />} />
-      <Route path="/logiccorrect" element={<LogicCorrect />} />
-      <Route path="/logicincorrect" element={<LogicIncorrect />} />
-      <Route path="/logicsummary" element={<LogicSummary />} />
-      <Route path="/endurance" element={<Endurance />} />
-      <Route path="/endurancecorrect" element={<EnduranceCorrect />} />
-      <Route path="/enduranceincorrect" element={<EnduranceIncorrect />} />
-      <Route path="/endurancesummary" element={<EnduranceSummary />} />
-      <Route path="/leaderboard" element={<LeaderBoard />} />
+      <Route path="/ParagraphReading" element={<ParagraphReading />} />
+      <Route path="/easy-level-paragraph-reading" element={<EasyLevelParagraphReading />} />
+      <Route path="/medium-level-paragraph-reading" element={<MediumLevelParagraphReading />} />
+      <Route path="/hard-level-paragraph-reading" element={<HardLevelParagraphReading />} />
+      <Route path="/EasyLevelResult" element={<EasyLevelResult />} />
+      <Route path="/medium-level-result" element={<MediumLevelResult />} />
+      <Route path="/hard-level-result" element={<HardLevelResult />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/summary" element={<Summary />} />
+      <Route path="/MockInterview" element={<MockInterview />} />
+      <Route path="/InitialInterview" element={<InitialInterview />} />
+      <Route path="/InitialInterviewRecording" element={<InitialInterviewRecording />} />
+      <Route path="/MockInterviewFeedback" element={<MockInterviewFeedback />} />
+      <Route path="/PracticeHistory" element={<PracticeHistory />} />
+      <Route path="/Profile" element={<Profile />} />
+      <Route path="/PerformanceSummary" element={<PerformanceSummary />} />
+      <Route path="/AdminLogin" element={<AdminLogin />} />
+      <Route path="/AdminDashboard" element={<AdminDashboard />} />
+      <Route path="/ManageInterviewQuestions" element={<ManageInterviewQuestions />} />
+      <Route path="/MonitorUsers" element={<MonitorUsers />} />
+      <Route path="/AdminProfile" element={<AdminProfile />} />
     </Routes>
   );
 }
