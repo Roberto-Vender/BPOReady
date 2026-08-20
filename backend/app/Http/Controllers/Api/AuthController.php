@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -104,5 +106,69 @@ class AuthController extends Controller
         $user->update(['password' => Hash::make($validated['password'])]);
 
         return response()->json(['message' => 'Password updated successfully.']);
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $email = strtolower($validated['email']);
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'If an account exists for that email, a reset code has been sent.',
+            ]);
+        }
+
+        $code = (string) random_int(100000, 999999);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $email],
+            [
+                'token' => Hash::make($code),
+                'created_at' => now(),
+            ]
+        );
+
+        Mail::raw(
+            "Your Puzzle Master password reset code is: {$code}\n\nThis code expires in 15 minutes. If you did not request a password reset, you can ignore this email.",
+            function ($message) use ($email): void {
+                $message->to($email)->subject('Puzzle Master password reset code');
+            }
+        );
+
+        return response()->json([
+            'message' => 'A six-digit password reset code has been sent to your email.',
+        ]);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'code' => ['required', 'digits:6'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $email = strtolower($validated['email']);
+        $reset = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (!$reset || !$reset->created_at || now()->diffInMinutes($reset->created_at) > 15 || !Hash::check($validated['code'], $reset->token)) {
+            return response()->json(['message' => 'The reset code is invalid or has expired.'], 422);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'The reset code is invalid or has expired.'], 422);
+        }
+
+        $user->update(['password' => Hash::make($validated['password'])]);
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        return response()->json(['message' => 'Password reset successfully.']);
     }
 }

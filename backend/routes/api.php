@@ -8,3 +8,5 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/profile', [AuthController::class, 'profile']);
 Route::patch('/profile', [AuthController::class, 'updateProfile']);
 Route::put('/profile/password', [AuthController::class, 'changePassword']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);

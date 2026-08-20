@@ -23,6 +23,7 @@ import AdminDashboard from "../pages/AdminDashboard";
 import ManageInterviewQuestions from "../pages/ManageInterviewQuestions";
 import MonitorUsers from "../pages/MonitorUsers";
 import AdminProfile from "../pages/AdminProfile";
+import ForgotPassword from "../pages/ForgotPassword";
 
 
 export default function AppRoutes() {
@@ -52,6 +53,7 @@ export default function AppRoutes() {
       <Route path="/ManageInterviewQuestions" element={<ManageInterviewQuestions />} />
       <Route path="/MonitorUsers" element={<MonitorUsers />} />
       <Route path="/AdminProfile" element={<AdminProfile />} />
+      <Route path="/ForgotPassword" element={<ForgotPassword />} />
     </Routes>
   );
 }
