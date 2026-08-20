@@ -1,7 +1,99 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Profile = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
+  const [profileForm, setProfileForm] = useState({ name: user?.name || "" });
+  const [passwordForm, setPasswordForm] = useState({ current_password: "", password: "", password_confirmation: "" });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    fetch(`${apiUrl}/api/profile?email=${encodeURIComponent(user.email)}`, {
+      headers: { Accept: "application/json" },
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Unable to load your profile.");
+        return data.user;
+      })
+      .then((freshUser) => {
+        setUser(freshUser);
+        setProfileForm({ name: freshUser.name });
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      })
+      .catch((loadError) => setError(loadError.message));
+  }, [apiUrl, user?.email]);
+
+  const handleProfileChange = (event) => {
+    setProfileForm({ ...profileForm, [event.target.name]: event.target.value });
+  };
+
+  const handlePasswordChange = (event) => {
+    setPasswordForm({ ...passwordForm, [event.target.name]: event.target.value });
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+    setIsSavingProfile(true);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: user.email, name: profileForm.name }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to update your profile.");
+
+      setUser(data.user);
+      setProfileForm({ name: data.user.name });
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setMessage(data.message);
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+
+    if (passwordForm.password !== passwordForm.password_confirmation) {
+      setError("New passwords do not match.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/profile/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: user.email, ...passwordForm }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to update your password.");
+
+      setPasswordForm({ current_password: "", password: "", password_confirmation: "" });
+      setMessage(data.message);
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 font-poppins">
       {/* Sidebar */}
@@ -94,6 +186,11 @@ const Profile = () => {
 
         {/* Page Content */}
         <div className="px-6 py-6 max-w-3xl space-y-6">
+          {(message || error) && (
+            <p className={`rounded-lg px-4 py-3 text-sm ${error ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>
+              {error || message}
+            </p>
+          )}
 
           {/* Account Information */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -102,10 +199,10 @@ const Profile = () => {
             </div>
             <div className="px-6 py-4 space-y-2">
               <p className="text-sm text-gray-700">
-                <span className="font-semibold">Name:</span> Juan Dela Cruz
+                <span className="font-semibold">Name:</span> {user?.name || "Loading..."}
               </p>
               <p className="text-sm text-gray-700">
-                <span className="font-semibold">Email:</span> juan@email.com
+                <span className="font-semibold">Email:</span> {user?.email || "Loading..."}
               </p>
             </div>
           </div>
@@ -115,12 +212,15 @@ const Profile = () => {
             <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
               <h2 className="text-sm font-semibold text-gray-700">Update Profile</h2>
             </div>
-            <div className="px-6 py-4 space-y-4">
+            <form onSubmit={handleProfileSubmit} className="px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Full Name</label>
                 <input
+                  name="name"
                   type="text"
-                  placeholder="Enter your name"
+                  value={profileForm.name}
+                  onChange={handleProfileChange}
+                  required
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
                 />
               </div>
@@ -128,14 +228,15 @@ const Profile = () => {
                 <label className="block text-sm text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
-                  placeholder="Enter your email"
+                  value={user?.email || ""}
+                  readOnly
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
                 />
               </div>
-              <button className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors">
-                Save Changes
+              <button type="submit" disabled={isSavingProfile} className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 disabled:opacity-60 transition-colors">
+                {isSavingProfile ? "Saving..." : "Save Changes"}
               </button>
-            </div>
+            </form>
           </div>
 
           {/* Change Password */}
@@ -143,32 +244,45 @@ const Profile = () => {
             <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
               <h2 className="text-sm font-semibold text-gray-700">Change Password</h2>
             </div>
-            <div className="px-6 py-4 space-y-4">
+            <form onSubmit={handlePasswordSubmit} className="px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Current Password</label>
                 <input
+                  name="current_password"
                   type="password"
+                  value={passwordForm.current_password}
+                  onChange={handlePasswordChange}
+                  required
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-1">New Password</label>
                 <input
+                  name="password"
                   type="password"
+                  value={passwordForm.password}
+                  onChange={handlePasswordChange}
+                  minLength={8}
+                  required
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Confirm Password</label>
                 <input
+                  name="password_confirmation"
                   type="password"
+                  value={passwordForm.password_confirmation}
+                  onChange={handlePasswordChange}
+                  required
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                 />
               </div>
-              <button className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors">
-                Update Password
+              <button type="submit" disabled={isChangingPassword} className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 disabled:opacity-60 transition-colors">
+                {isChangingPassword ? "Updating..." : "Update Password"}
               </button>
-            </div>
+            </form>
           </div>
 
         </div>
