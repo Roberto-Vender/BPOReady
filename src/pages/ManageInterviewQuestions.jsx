@@ -1,30 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { getQuestions, saveQuestions } from "../utils/questionData";
-
-const initialParagraphQuestions = {
-  easy: [
-    { id: 1, question: "Tell me about yourself." },
-    { id: 2, question: "Why do you want to work in the BPO industry?" },
-  ],
-  medium: [
-    { id: 3, question: "How do you handle difficult customers?" },
-    { id: 4, question: "How do you manage stress in a fast-paced environment?" },
-  ],
-  hard: [
-    { id: 5, question: "Describe a situation where you had to resolve a conflict at work." },
-  ],
-};
-
-const initialMockQuestions = {
-  initial: [
-    { id: 101, question: "Tell me about yourself." },
-    { id: 102, question: "Why should we hire you?" },
-  ],
-  final: [
-    { id: 201, question: "Describe a time you handled a difficult customer." },
-  ],
-};
+import { Link, useNavigate } from "react-router-dom";
+import AdminSidebar from "../components/AdminSidebar";
+import {
+  fetchAdminQuestions,
+  fetchLiveQuestions,
+  submitQuestionApi,
+  updateQuestionStatusApi,
+  deleteQuestionApi,
+} from "../utils/questionData";
 
 const paragraphLevels = [
   { key: "easy", label: "Easy" },
@@ -38,280 +21,445 @@ const mockLevels = [
 ];
 
 const ManageInterviewQuestions = () => {
-  const storedQuestions = useMemo(() => getQuestions(), []);
-  const [paragraphQuestions, setParagraphQuestions] = useState(storedQuestions.paragraph);
-  const [mockQuestions, setMockQuestions] = useState(storedQuestions.mock);
-  const [selectedLevel, setSelectedLevel] = useState("easy");
+  const navigate = useNavigate();
+  const currentUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const isSuperAdmin = currentUser?.role === "super_admin";
+
+  const [questions, setQuestions] = useState([]);
+  const [counts, setCounts] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(isSuperAdmin ? "pending" : "approved");
   const [selectedSection, setSelectedSection] = useState("paragraph");
-  const [insertAfterId, setInsertAfterId] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState("easy");
   const [newQuestion, setNewQuestion] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  // Rejection modal state
+  const [rejectingQuestionId, setRejectingQuestionId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  const loadQuestions = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAdminQuestions();
+      setQuestions(data.questions || []);
+      setCounts(data.counts || { total: 0, pending: 0, approved: 0, rejected: 0 });
+      fetchLiveQuestions().catch(() => {});
+    } catch (err) {
+      console.error("Unable to load questions from backend", err);
+      setMessage({ type: "error", text: "Could not connect to questions service." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    saveQuestions({ paragraph: paragraphQuestions, mock: mockQuestions });
-  }, [paragraphQuestions, mockQuestions]);
+    loadQuestions();
+  }, []);
 
-  const handleAddQuestion = (e) => {
+  const handleAddQuestion = async (e) => {
     e.preventDefault();
-
     const trimmedQuestion = newQuestion.trim();
     if (!trimmedQuestion) {
-      setMessage("Please enter a question before saving.");
+      setMessage({ type: "error", text: "Please enter a valid question prompt." });
       return;
     }
 
-    if (selectedSection === "paragraph") {
-      const currentQuestions = paragraphQuestions[selectedLevel];
-      const insertIndex = insertAfterId
-        ? currentQuestions.findIndex((item) => item.id === Number(insertAfterId))
-        : -1;
+    try {
+      const payload = {
+        section: selectedSection,
+        level: selectedLevel,
+        question: trimmedQuestion,
+        role: currentUser?.role || "admin",
+        submitter_name: currentUser?.name || "Admin",
+        submitter_email: currentUser?.email || "admin@bpoready.com",
+      };
 
-      const newEntry = { id: Date.now(), question: trimmedQuestion };
-      const updatedQuestions = [...currentQuestions];
+      const res = await submitQuestionApi(payload);
+      setMessage({ type: "success", text: res.message || "Question submitted successfully!" });
+      setNewQuestion("");
+      setShowForm(false);
+      await loadQuestions();
 
-      if (insertIndex >= 0) {
-        updatedQuestions.splice(insertIndex + 1, 0, newEntry);
-      } else {
-        updatedQuestions.push(newEntry);
+      if (!isSuperAdmin) {
+        setActiveTab("my_submissions");
       }
-
-      setParagraphQuestions((prev) => ({
-        ...prev,
-        [selectedLevel]: updatedQuestions,
-      }));
-
-      setMessage(`Added to the ${paragraphLevels.find((level) => level.key === selectedLevel)?.label.toLowerCase()} paragraph list.`);
-    } else {
-      const currentQuestions = mockQuestions[selectedLevel];
-      const insertIndex = insertAfterId
-        ? currentQuestions.findIndex((item) => item.id === Number(insertAfterId))
-        : -1;
-
-      const newEntry = { id: Date.now(), question: trimmedQuestion };
-      const updatedQuestions = [...currentQuestions];
-
-      if (insertIndex >= 0) {
-        updatedQuestions.splice(insertIndex + 1, 0, newEntry);
-      } else {
-        updatedQuestions.push(newEntry);
-      }
-
-      setMockQuestions((prev) => ({
-        ...prev,
-        [selectedLevel]: updatedQuestions,
-      }));
-
-      setMessage(`Added to the ${mockLevels.find((level) => level.key === selectedLevel)?.label.toLowerCase()} list.`);
+    } catch (err) {
+      setMessage({ type: "error", text: err.message || "Failed to submit question." });
     }
-
-    setNewQuestion("");
-    setInsertAfterId("");
-    setShowForm(false);
   };
 
+  const handleApproveQuestion = async (id) => {
+    try {
+      const res = await updateQuestionStatusApi(id, {
+        status: "approved",
+        reviewer_name: currentUser?.name || "Super Admin",
+      });
+      setMessage({ type: "success", text: res.message || "Question approved and published live!" });
+      await loadQuestions();
+    } catch (err) {
+      setMessage({ type: "error", text: err.message || "Failed to approve question." });
+    }
+  };
+
+  const handleOpenRejectModal = (id) => {
+    setRejectingQuestionId(id);
+    setRejectionReason("");
+  };
+
+  const handleConfirmReject = async () => {
+    if (!rejectingQuestionId) return;
+    try {
+      const res = await updateQuestionStatusApi(rejectingQuestionId, {
+        status: "rejected",
+        reviewer_name: currentUser?.name || "Super Admin",
+        rejection_reason: rejectionReason.trim() || "Question does not meet standard BPO requirements.",
+      });
+      setMessage({ type: "success", text: res.message || "Question marked as rejected." });
+      setRejectingQuestionId(null);
+      setRejectionReason("");
+      await loadQuestions();
+    } catch (err) {
+      setMessage({ type: "error", text: err.message || "Failed to reject question." });
+    }
+  };
+
+  const handleDeleteQuestion = async (id, questionText) => {
+    if (!window.confirm(`Are you sure you want to delete this question?\n\n"${questionText}"`)) {
+      return;
+    }
+    try {
+      const res = await deleteQuestionApi(id);
+      setMessage({ type: "success", text: res.message || "Question deleted successfully." });
+      await loadQuestions();
+    } catch (err) {
+      setMessage({ type: "error", text: err.message || "Failed to delete question." });
+    }
+  };
+
+  const filteredQuestions = useMemo(() => {
+    if (activeTab === "pending") {
+      return questions.filter((q) => q.status === "pending");
+    }
+    if (activeTab === "approved") {
+      return questions.filter((q) => q.status === "approved");
+    }
+    if (activeTab === "rejected") {
+      return questions.filter((q) => q.status === "rejected");
+    }
+    if (activeTab === "my_submissions") {
+      return questions.filter(
+        (q) =>
+          q.submitted_by_email === currentUser?.email ||
+          q.submitted_by_name === currentUser?.name
+      );
+    }
+    return questions;
+  }, [questions, activeTab, currentUser]);
+
   return (
-    <div className="flex min-h-screen bg-gray-100 font-poppins">
-      {/* Sidebar */}
-      <div className="w-56 bg-white border-r border-gray-200 shadow-sm flex flex-col py-6 fixed h-screen">
-        {/* Logo */}
-        <div className="px-6 mb-8">
-          <span className="text-xl font-bold text-blue-600">BPOReady</span>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="flex flex-col gap-1 px-3">
-          <Link to="/AdminDashboard">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              Dashboard
-            </button>
-          </Link>
-          <Link to="/ManageInterviewQuestions">
-            <button className="w-full text-left px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-lg">
-              Manage Interview Questions
-            </button>
-          </Link>
-          <Link to="/MonitorUsers">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              Monitor Users
-            </button>
-          </Link>
-          <Link to="/AdminProfile">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              Profile
-            </button>
-          </Link>
-        </nav>
-
-        {/* Logout */}
-        <div className="mt-auto px-3">
-          <Link to="/Login">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-              Log out
-            </button>
-          </Link>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-slate-950 font-poppins text-slate-100">
+      <AdminSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 ml-56 p-8">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          {/* Page Title */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-xl font-bold text-gray-800">Manage Questions</h1>
-            <button
-              onClick={() => setShowForm((prev) => !prev)}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {showForm ? "Close Form" : "Add Question"}
-            </button>
-          </div>
-
-          {message && (
-            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              {message}
+      <div className="flex-1 ml-60">
+        <header className="bg-slate-900/90 border-b border-slate-800 px-8 py-4 sticky top-0 z-30 backdrop-blur-md">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-white">Manage Practice Questions</h1>
+              <p className="text-xs text-slate-400">
+                Submit questions for Super Admin approval and view active practice items.
+              </p>
             </div>
-          )}
+            <span className="rounded-full bg-blue-950 border border-blue-800 px-3 py-0.5 text-xs font-semibold text-blue-300">
+              Admin Portal
+            </span>
+          </div>
+        </header>
 
-          {/* Add Question Form */}
-          {showForm && (
-            <form onSubmit={handleAddQuestion} className="mb-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Choose section
-                  </label>
-                  <select
-                    value={selectedSection}
-                    onChange={(e) => {
-                      setSelectedSection(e.target.value);
-                      setSelectedLevel(e.target.value === "paragraph" ? "easy" : "initial");
-                      setInsertAfterId("");
-                    }}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
-                  >
-                    <option value="paragraph">Paragraph Reading</option>
-                    <option value="mock">Mock Interview</option>
-                  </select>
+        <main className="max-w-6xl mx-auto px-8 py-10 space-y-6">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-8 shadow-xl space-y-6">
+            {/* Header Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-white">Question Directory</h2>
+                  <span className="rounded-full bg-blue-950 border border-blue-700/60 px-3 py-0.5 text-xs font-bold text-blue-300 uppercase">
+                    Admin Contributor
+                  </span>
                 </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Choose level
-                  </label>
-                  <select
-                    value={selectedLevel}
-                    onChange={(e) => {
-                      setSelectedLevel(e.target.value);
-                      setInsertAfterId("");
-                    }}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
-                  >
-                    {(selectedSection === "paragraph" ? paragraphLevels : mockLevels).map((level) => (
-                      <option key={level.key} value={level.key}>
-                        {level.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Submit new interview and reading questions. Submitted questions will be reviewed and approved by Super Admin.
+                </p>
               </div>
 
-              <div className="mt-4">
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Add after question
-                </label>
-                <select
-                  value={insertAfterId}
-                  onChange={(e) => setInsertAfterId(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
-                >
-                  <option value="">At the end of the list</option>
-                  {(selectedSection === "paragraph" ? paragraphQuestions[selectedLevel] : mockQuestions[selectedLevel]).map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.question}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <button
+                onClick={() => setShowForm((prev) => !prev)}
+                className="rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-md shadow-cyan-950/40 self-start sm:self-auto"
+              >
+                <span>{showForm ? "✕ Close Form" : "+ Submit Question"}</span>
+              </button>
+            </div>
 
-              <div className="mt-4">
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Question text
-                </label>
-                <textarea
-                  value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                  placeholder="Enter the new question"
-                  rows={4}
-                  className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
-                />
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="submit"
-                  className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-                >
-                  Save Question
-                </button>
+            {/* Alert Messages */}
+            {message.text && (
+              <div
+                className={`rounded-xl border p-4 text-xs font-semibold flex items-center justify-between ${
+                  message.type === "error"
+                    ? "border-rose-800/70 bg-rose-950/50 text-rose-200"
+                    : "border-emerald-800/70 bg-emerald-950/50 text-emerald-200"
+                }`}
+              >
+                <span>{message.text}</span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setNewQuestion("");
-                    setInsertAfterId("");
-                  }}
-                  className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100"
+                  onClick={() => setMessage({ type: "", text: "" })}
+                  className="text-xs uppercase hover:underline ml-4 font-bold"
                 >
-                  Cancel
+                  Dismiss
                 </button>
               </div>
-            </form>
-          )}
+            )}
 
-          {/* Question List */}
-          <div className="space-y-4">
-            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-base font-bold text-gray-800">Paragraph Reading Questions</h2>
-              </div>
-              <div className="space-y-3">
-                {paragraphLevels.map((level) => (
-                  <div key={level.key}>
-                    <h3 className="mb-2 text-sm font-semibold text-gray-700">{level.label}</h3>
-                    <ul className="space-y-2">
-                      {paragraphQuestions[level.key].map((item) => (
-                        <li key={item.id} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                          {item.question}
-                        </li>
-                      ))}
-                    </ul>
+            {/* Add / Submit Question Form */}
+            {showForm && (
+              <form
+                onSubmit={handleAddQuestion}
+                className="rounded-xl border border-cyan-800/70 bg-slate-950 p-6 shadow-inner space-y-4"
+              >
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 className="text-sm font-bold text-cyan-300">
+                    Submit Question for Super Admin Approval
+                  </h3>
+                  <span className="text-xs font-semibold text-amber-300 bg-amber-950/80 border border-amber-800 px-2.5 py-0.5 rounded-full">
+                    Status: Pending Review
+                  </span>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      Section
+                    </label>
+                    <select
+                      value={selectedSection}
+                      onChange={(e) => {
+                        setSelectedSection(e.target.value);
+                        setSelectedLevel(e.target.value === "paragraph" ? "easy" : "initial");
+                      }}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                    >
+                      <option value="paragraph">Paragraph Reading</option>
+                      <option value="mock">Mock Interview</option>
+                    </select>
                   </div>
-                ))}
-              </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      Level / Category
+                    </label>
+                    <select
+                      value={selectedLevel}
+                      onChange={(e) => setSelectedLevel(e.target.value)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                    >
+                      {(selectedSection === "paragraph" ? paragraphLevels : mockLevels).map((lvl) => (
+                        <option key={lvl.key} value={lvl.key}>
+                          {lvl.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Question Text / Prompt
+                  </label>
+                  <textarea
+                    value={newQuestion}
+                    onChange={(e) => setNewQuestion(e.target.value)}
+                    placeholder="Type the question or interview scenario clearly..."
+                    rows={3}
+                    className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-cyan-400 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-md shadow-cyan-950/40"
+                  >
+                    Submit for Approval
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForm(false);
+                      setNewQuestion("");
+                    }}
+                    className="rounded-lg border border-slate-700 bg-slate-900 px-5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Workflow Tabs */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+              <button
+                type="button"
+                onClick={() => setActiveTab("approved")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition ${
+                  activeTab === "approved"
+                    ? "bg-cyan-400 text-slate-950 shadow-md shadow-cyan-950/40"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                }`}
+              >
+                <span>Active Live Questions</span>
+                <span
+                  className={`rounded-full px-2 py-0.2 text-xs font-extrabold ${
+                    activeTab === "approved" ? "bg-slate-950 text-cyan-300" : "bg-slate-900 text-slate-300"
+                  }`}
+                >
+                  {counts.approved}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("my_submissions")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition ${
+                  activeTab === "my_submissions"
+                    ? "bg-indigo-500 text-white shadow-md shadow-indigo-950/40"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                }`}
+              >
+                <span>My Submissions & Status</span>
+              </button>
             </div>
 
-            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-base font-bold text-gray-800">Mock Interview Questions</h2>
+            {/* Questions Listing */}
+            {loading ? (
+              <div className="py-12 text-center text-slate-400 text-sm">Loading questions...</div>
+            ) : filteredQuestions.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-800 py-12 text-center text-slate-400">
+                <p className="text-sm font-bold text-slate-300">No questions found in this view.</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {activeTab === "my_submissions"
+                    ? "You haven't submitted any questions yet."
+                    : "Click '+ Submit Question' above to add one."}
+                </p>
               </div>
-              <div className="space-y-3">
-                {mockLevels.map((level) => (
-                  <div key={level.key}>
-                    <h3 className="mb-2 text-sm font-semibold text-gray-700">{level.label}</h3>
-                    <ul className="space-y-2">
-                      {mockQuestions[level.key].map((item) => (
-                        <li key={item.id} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                          {item.question}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+            ) : (
+              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                {filteredQuestions.map((q) => {
+                  const sectionLabel = q.section === "paragraph" ? "Paragraph Reading" : "Mock Interview";
+                  const levelLabel =
+                    q.section === "paragraph"
+                      ? paragraphLevels.find((l) => l.key === q.level)?.label || q.level
+                      : mockLevels.find((l) => l.key === q.level)?.label || q.level;
+
+                  const isPending = q.status === "pending";
+                  const isApproved = q.status === "approved";
+                  const isRejected = q.status === "rejected";
+
+                  return (
+                    <div
+                      key={q.id}
+                      className={`rounded-xl border p-5 transition ${
+                        isPending
+                          ? "border-amber-500/50 bg-amber-950/20"
+                          : isRejected
+                          ? "border-rose-900/50 bg-rose-950/20"
+                          : "border-slate-800 bg-slate-950/70"
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div className="space-y-2 flex-1">
+                          {/* Tags / Badges */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-xs font-semibold text-cyan-300">
+                              {sectionLabel} • {levelLabel}
+                            </span>
+
+                            {isPending && (
+                              <span className="rounded-full bg-amber-950 border border-amber-700/60 px-2.5 py-0.5 text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                Pending Super Admin Approval
+                              </span>
+                            )}
+
+                            {isApproved && (
+                              <span className="rounded-full bg-emerald-950 border border-emerald-700/60 px-2.5 py-0.5 text-xs font-bold text-emerald-300">
+                                ✓ Approved & Live
+                              </span>
+                            )}
+
+                            {isRejected && (
+                              <span className="rounded-full bg-rose-950 border border-rose-700/60 px-2.5 py-0.5 text-xs font-bold text-rose-300">
+                                ✗ Rejected
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Question text */}
+                          <p className="text-sm font-semibold text-slate-100 leading-relaxed">
+                            "{q.question}"
+                          </p>
+
+                          {/* Submitter info */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 pt-1">
+                            <span>
+                              Submitted by: <strong className="text-slate-200">{q.submitted_by_name || "Admin"}</strong>
+                            </span>
+                            {q.reviewed_by_name && (
+                              <span>
+                                Reviewed by: <strong className="text-slate-200">{q.reviewed_by_name}</strong>
+                              </span>
+                            )}
+                            {q.created_at && (
+                              <span>
+                                Date: {new Date(q.created_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Rejection Note */}
+                          {isRejected && q.rejection_reason && (
+                            <div className="mt-2 rounded-lg border border-rose-900/80 bg-rose-950/40 p-2.5 text-xs text-rose-200">
+                              <strong>Rejection Feedback:</strong> {q.rejection_reason}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Admin Delete Action for their pending submissions */}
+                        {isPending && q.submitted_by_email === currentUser?.email && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuestion(q.id, q.question)}
+                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:border-rose-500 hover:text-rose-300 transition shrink-0"
+                          >
+                            Withdraw Submission
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );

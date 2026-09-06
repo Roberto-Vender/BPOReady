@@ -1,151 +1,164 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import StudentSidebar from "../components/StudentSidebar";
 
 const Dashboard = () => {
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
+  const firstName = user?.name ? user.name.split(" ")[0] : "Learner";
+
   return (
-    <div className="flex min-h-screen bg-gray-50 font-poppins">
+    <div className="flex min-h-screen bg-slate-950 font-poppins text-slate-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="font-bold text-gray-800">BPQReady</span>
-          </div>
-        </div>
-
-        {/* Navigation Items */}
-        <nav className="p-4 space-y-2">
-          <Link to="/Dashboard" className="flex items-center gap-3 px-4 py-3 text-blue-600 bg-blue-50 rounded-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M9 5h6" />
-            </svg>
-            <span className="font-medium">Dashboard</span>
-          </Link>
-
-          <Link to="/ParagraphReading" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747 0-6.002-4.5-10.747-10-10.747z" />
-            </svg>
-            <span>Paragraph Reading</span>
-          </Link>
-
-          <Link to="/MockInterview" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>Mock Interview</span>
-          </Link>
-
-          <Link to="/PracticeHistory" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Practice History</span>
-          </Link>
-
-          <Link to="/PerformanceSummary" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span>Performance Summary</span>
-          </Link>
-        </nav>
-
-        {/* Bottom Section */}
-        <div className="absolute bottom-0 left-0 w-64 border-t border-gray-200 bg-white p-4 space-y-2">
-          <Link to="/Profile" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span>Profile</span>
-          </Link>
-
-          <Link to="/Login" className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span>Log out</span>
-          </Link>
-        </div>
-      </div>
+      <StudentSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Welcome, <span className="text-blue-600">Claudin!</span>
-          </h1>
-          <p className="text-gray-600">
-            Continue improving your communication and interview skills.
-          </p>
-        </div>
-
-        {/* Continue Practice Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Continue Practice</h2>
-          <p className="text-gray-600 mb-6">Resume your last activity or start a new session.</p>
-          <div className="flex gap-4">
-            <Link to="/ParagraphReading">
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                Go to Paragraph Reading
-              </button>
-            </Link>
-            <Link to="/MockInterview">
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                Start Mock Interview
-              </button>
-            </Link>
+      <div className="flex-1 ml-20">
+        {/* Top Header */}
+        <header className="bg-slate-900/90 border-b border-slate-800 px-8 py-4 sticky top-0 z-30 backdrop-blur-md">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-slate-100">Learner Dashboard</h1>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-400 font-medium">Signed in as</span>
+              <span className="rounded-full bg-cyan-950 border border-cyan-700/60 px-3 py-1 text-xs font-bold text-cyan-300">
+                {user?.name || "Student"}
+              </span>
+            </div>
           </div>
-        </div>
+        </header>
 
-        {/* Recent Activity Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Activity</h2>
-          <ul className="space-y-2 text-gray-600">
-            <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-              Paragraph Reading - Easy Level Completed
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-              Mock Interview (Initial) - 1 Session Completed
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-              Paragraph Reading - Medium Level In Progress
-            </li>
-          </ul>
-        </div>
+        <main className="p-8 max-w-6xl mx-auto space-y-8">
+          {/* Welcome Banner */}
+          <section className="rounded-2xl border border-cyan-900/60 bg-linear-to-br from-cyan-950 via-slate-900 to-slate-900 p-8 shadow-2xl shadow-cyan-950/25">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
+                BPO Training & Communication Mastery
+              </p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-white">
+                Welcome back, <span className="text-cyan-300">{firstName}!</span>
+              </h2>
+              <p className="mt-3 text-slate-300 text-sm leading-relaxed">
+                Continue refining your speech delivery, pacing, pronunciation, and interview confidence to land top BPO customer support and technical roles.
+              </p>
+            </div>
+          </section>
 
-        {/* Performance Summary Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Performance Summary</h2>
-          <ul className="space-y-2 text-gray-600 mb-6">
-            <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-              Filler Words: Moderate
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-              Clarity: Good
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-              Confidence: Improving
-            </li>
-          </ul>
-          <Link to="/PerformanceSummary">
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-              View Full Summary
-            </button>
-          </Link>
-        </div>
+          {/* Quick Practice Actions */}
+          <section className="grid gap-6 md:grid-cols-2">
+            {/* Paragraph Reading Card */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 hover:border-slate-700 transition">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  📄
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Paragraph Reading</h3>
+                  <p className="text-xs text-slate-400">Fluency, cadence, and filler-word detection</p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-300">
+                Read structured customer service paragraphs with real-time speech assessment and interactive pacing drills.
+              </p>
+              <Link to="/ParagraphReading" className="inline-block pt-2">
+                <button className="rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-md shadow-cyan-950/40">
+                  Go to Paragraph Reading →
+                </button>
+              </Link>
+            </div>
+
+            {/* Mock Interview Card */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4 hover:border-slate-700 transition">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                  🎙️
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Mock Interview</h3>
+                  <p className="text-xs text-slate-400">AI-powered speech, grammar & coaching</p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-300">
+                Practice actual BPO interview questions with AI evaluation on grammar, clarity, pacing, and instant coaching feedback.
+              </p>
+              <Link to="/MockInterview" className="inline-block pt-2">
+                <button className="rounded-xl bg-indigo-500 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-400 transition shadow-md shadow-indigo-950/40">
+                  Start Mock Interview →
+                </button>
+              </Link>
+            </div>
+          </section>
+
+          {/* Activity & Performance Row */}
+          <section className="grid gap-6 md:grid-cols-2">
+            {/* Recent Progress */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-slate-100">Practice Modules</h3>
+                <Link to="/PracticeHistory" className="text-xs text-cyan-400 hover:underline font-semibold">
+                  View History
+                </Link>
+              </div>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <div className="flex items-center gap-2.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+                    <span className="text-slate-200">Paragraph Reading Practice</span>
+                  </div>
+                  <span className="text-xs text-emerald-400 font-semibold">Available</span>
+                </li>
+                <li className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <div className="flex items-center gap-2.5">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400"></span>
+                    <span className="text-slate-200">Initial Mock Interview</span>
+                  </div>
+                  <span className="text-xs text-cyan-400 font-semibold">Available</span>
+                </li>
+                <li className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                  <div className="flex items-center gap-2.5">
+                    <span className="h-2 w-2 rounded-full bg-indigo-400"></span>
+                    <span className="text-slate-200">Grammar & Pacing Drills</span>
+                  </div>
+                  <span className="text-xs text-indigo-300 font-semibold">Active</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Performance Overview */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                  <h3 className="text-base font-bold text-slate-100">Performance Summary</h3>
+                  <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">Metrics</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mb-4 text-center">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                    <p className="text-xs text-slate-400">Clarity</p>
+                    <p className="mt-1 text-base font-bold text-emerald-400">Good</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                    <p className="text-xs text-slate-400">Pacing</p>
+                    <p className="mt-1 text-base font-bold text-cyan-400">Steady</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                    <p className="text-xs text-slate-400">Grammar</p>
+                    <p className="mt-1 text-base font-bold text-indigo-400">Guided</p>
+                  </div>
+                </div>
+              </div>
+              <Link to="/PerformanceSummary" className="w-full">
+                <button className="w-full rounded-xl border border-slate-700 bg-slate-800/80 py-2.5 text-xs font-bold text-slate-200 hover:border-cyan-400 hover:text-cyan-300 transition">
+                  View Detailed Performance Summary →
+                </button>
+              </Link>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );

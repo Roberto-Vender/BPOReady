@@ -1,7 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 const AdminLogin = () => {
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"}/api/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        const validationErrors = data.errors ? Object.values(data.errors).flat().join(" ") : data.message;
+        throw new Error(validationErrors || "Unable to log in as administrator.");
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+      window.location.href = data.user.role === "super_admin" ? "/SuperAdminDashboard" : "/AdminDashboard";
+    } catch (submitError) {
+      setError(submitError.message || "Unable to log in as administrator.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 font-poppins">
@@ -27,23 +57,28 @@ const AdminLogin = () => {
             Admin Login
           </p>
 
-          {/* Email Input */}
-          <div className="mb-6">
+          <form onSubmit={handleSubmit}>
+            {error && <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+
             <input
+              name="email"
               type="email"
               placeholder="Email Address"
+              value={form.email}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
-          </div>
 
-          {/* Password Input */}
-          <div className="mb-6">
             <input
+              name="password"
               type="password"
               placeholder="Password"
+              value={form.password}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
-          </div>
 
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between mb-6">
@@ -59,12 +94,10 @@ const AdminLogin = () => {
             </Link>
           </div>
 
-          {/* Login Button */}
-          <Link to="/AdminDashboard" className="block">
-            <button className="w-full py-3 rounded-lg font-semibold transition-all duration-300 bg-blue-600 text-white hover:bg-blue-700 shadow-md">
-              Log In
+            <button type="submit" disabled={isSubmitting} className="w-full py-3 rounded-lg font-semibold transition-all duration-300 bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 shadow-md">
+              {isSubmitting ? "Logging In..." : "Log In"}
             </button>
-          </Link>
+          </form>
 
           {/* Sign Up Link */}
           <p className="text-center text-gray-600 mt-6">

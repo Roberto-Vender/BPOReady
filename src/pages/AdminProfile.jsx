@@ -1,126 +1,256 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import AdminSidebar from "../components/AdminSidebar";
 
 const AdminProfile = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
+  const [profileForm, setProfileForm] = useState({ name: user?.name || "" });
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: "",
+    password: "",
+    password_confirmation: "",
+  });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    fetch(`${apiUrl}/api/profile?email=${encodeURIComponent(user.email)}`, {
+      headers: { Accept: "application/json" },
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Unable to load profile.");
+        return data.user;
+      })
+      .then((freshUser) => {
+        setUser(freshUser);
+        setProfileForm({ name: freshUser.name });
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      })
+      .catch((loadError) => setError(loadError.message));
+  }, [apiUrl, user?.email]);
+
+  const handleProfileChange = (e) => {
+    setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setError("");
+    setIsSavingProfile(true);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: user.email, name: profileForm.name }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to update profile.");
+
+      setUser(data.user);
+      setProfileForm({ name: data.user.name });
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setMessage("Profile name updated successfully!");
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setError("");
+
+    if (passwordForm.password !== passwordForm.password_confirmation) {
+      setError("New password and confirmation do not match.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/profile/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: user.email, ...passwordForm }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to update password.");
+
+      setPasswordForm({ current_password: "", password: "", password_confirmation: "" });
+      setMessage("Password updated successfully!");
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-gray-100 font-poppins">
-      {/* Sidebar */}
-      <div className="w-56 bg-white border-r border-gray-200 shadow-sm flex flex-col py-6 fixed h-screen">
-        {/* Logo */}
-        <div className="px-6 mb-8">
-          <span className="text-xl font-bold text-blue-600">BPOReady</span>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="flex flex-col gap-1 px-3">
-          <Link to="/AdminDashboard">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              Dashboard
-            </button>
-          </Link>
-          <Link to="/ManageInterviewQuestions">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              Manage Interview Questions
-            </button>
-          </Link>
-          <Link to="/MonitorUsers">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              Monitor Users
-            </button>
-          </Link>
-          <Link to="/AdminProfile">
-            <button className="w-full text-left px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-lg">
-              Profile
-            </button>
-          </Link>
-        </nav>
-
-        {/* Logout */}
-        <div className="mt-auto px-3">
-          <Link to="/Login">
-            <button className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-              Log out
-            </button>
-          </Link>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-slate-950 font-poppins text-slate-100">
+      <AdminSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 ml-56 p-8 space-y-6">
-
-        {/* Profile Information */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h1 className="text-xl font-bold text-gray-800 mb-4">Profile Information</h1>
-          <div className="space-y-1 text-sm text-gray-700">
-            <p><span className="font-semibold">Name:</span> Admin User</p>
-            <p><span className="font-semibold">Email:</span> admin@bpoready.com</p>
+      <div className="flex-1 ml-60">
+        <header className="bg-slate-900/90 border-b border-slate-800 px-8 py-4 sticky top-0 z-30 backdrop-blur-md">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-white">Admin Profile</h1>
+              <p className="text-xs text-slate-400">Manage your credentials and administrator profile.</p>
+            </div>
+            <span className="rounded-full bg-blue-950 border border-blue-800 px-3 py-0.5 text-xs font-semibold text-blue-300">
+              Admin Portal
+            </span>
           </div>
-        </div>
+        </header>
 
-        {/* Update Profile + Change Password side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Update Profile */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-base font-bold text-gray-800 mb-4">Update Profile</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  defaultValue="Admin User"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Email</label>
-                <input
-                  type="email"
-                  defaultValue="admin@bpoready.com"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
-                />
-              </div>
-              <button className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors">
-                Save Changes
+        <main className="max-w-5xl mx-auto px-8 py-10 space-y-6">
+          {(message || error) && (
+            <div
+              className={`rounded-xl border p-4 text-xs font-semibold flex items-center justify-between ${
+                error
+                  ? "border-rose-800/70 bg-rose-950/50 text-rose-200"
+                  : "border-emerald-800/70 bg-emerald-950/50 text-emerald-200"
+              }`}
+            >
+              <span>{error || message}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMessage("");
+                  setError("");
+                }}
+                className="text-xs uppercase hover:underline ml-4 font-bold"
+              >
+                Dismiss
               </button>
+            </div>
+          )}
+
+          {/* Profile Information */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-3">
+            <h2 className="text-base font-bold text-cyan-300">Account Information</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                <span className="text-slate-500 uppercase tracking-wider block mb-1 font-semibold">
+                  Admin Name
+                </span>
+                <p className="text-sm font-bold text-white">{user?.name || "Admin"}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                <span className="text-slate-500 uppercase tracking-wider block mb-1 font-semibold">
+                  Email Address
+                </span>
+                <p className="text-sm font-bold text-white">{user?.email || "admin@bpoready.com"}</p>
+              </div>
             </div>
           </div>
 
-          {/* Change Password */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-base font-bold text-gray-800 mb-4">Change Password</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Current Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter current password"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                />
+          {/* Forms Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Update Name */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+              <div className="border-b border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-cyan-300">Update Name</h3>
+                <p className="text-xs text-slate-400">Change your administrator display name.</p>
               </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">New Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter new password"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                />
+              <form onSubmit={handleProfileSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Full Name
+                  </label>
+                  <input
+                    name="name"
+                    type="text"
+                    value={profileForm.name}
+                    onChange={handleProfileChange}
+                    required
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="w-full rounded-lg bg-cyan-400 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-md shadow-cyan-950/40 disabled:opacity-60"
+                >
+                  {isSavingProfile ? "Saving..." : "Save Name"}
+                </button>
+              </form>
+            </div>
+
+            {/* Change Password */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+              <div className="border-b border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-cyan-300">Change Password</h3>
+                <p className="text-xs text-slate-400">Ensure your account uses a secure password.</p>
               </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Confirm Password</label>
-                <input
-                  type="password"
-                  placeholder="Confirm new password"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                />
-              </div>
-              <button className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors">
-                Update Password
-              </button>
+              <form onSubmit={handlePasswordSubmit} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Current Password
+                  </label>
+                  <input
+                    name="current_password"
+                    type="password"
+                    value={passwordForm.current_password}
+                    onChange={handlePasswordChange}
+                    required
+                    placeholder="Current password"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    New Password
+                  </label>
+                  <input
+                    name="password"
+                    type="password"
+                    value={passwordForm.password}
+                    onChange={handlePasswordChange}
+                    minLength={8}
+                    required
+                    placeholder="New password (min 8 chars)"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Confirm Password
+                  </label>
+                  <input
+                    name="password_confirmation"
+                    type="password"
+                    value={passwordForm.password_confirmation}
+                    onChange={handlePasswordChange}
+                    required
+                    placeholder="Confirm new password"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="w-full rounded-lg bg-cyan-400 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-md shadow-cyan-950/40 disabled:opacity-60"
+                >
+                  {isChangingPassword ? "Updating..." : "Update Password"}
+                </button>
+              </form>
             </div>
           </div>
-
-        </div>
+        </main>
       </div>
     </div>
   );

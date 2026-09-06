@@ -30,7 +30,12 @@ const Login = () => {
       }
 
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard");
+      const destination = data.user.role === "super_admin"
+        ? "/SuperAdminDashboard"
+        : data.user.role === "admin"
+          ? "/AdminDashboard"
+          : "/dashboard";
+      navigate(destination);
     } catch (submitError) {
       setError(submitError.message || "Unable to log in.");
     } finally {

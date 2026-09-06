@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-20b'),
+        'transcription_model' => env('GROQ_TRANSCRIPTION_MODEL', 'whisper-large-v3-turbo'),
+    ],
+
+    'python_ai' => [
+        'url' => env('PYTHON_AI_URL', 'http://127.0.0.1:8010'),
+    ],
+
 ];

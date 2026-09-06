@@ -1,57 +1,9 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
-  const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
-
   return (
     <div className="w-full font-poppins">
-
-      {/* Role Selection Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Login As</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <p className="text-sm text-gray-500 mb-6 text-center">Please select how you want to log in.</p>
-
-            {/* Role Buttons */}
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => { setShowModal(false); navigate("/Login"); }}
-                className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Login as User
-              </button>
-
-              <button
-                onClick={() => { setShowModal(false); navigate("/AdminLogin"); }}
-                className="w-full py-3 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900 transition-colors shadow-sm flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                Login as Admin
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Navigation Header */}
       <nav className="bg-white shadow-sm sticky top-0 z-40">
@@ -77,12 +29,7 @@ const HomePage = () => {
 
           {/* Buttons */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-6 py-2 text-blue-600 font-semibold hover:text-blue-700"
-            >
-              Log In
-            </button>
+            <Link to="/Login" className="px-6 py-2 text-blue-600 font-semibold hover:text-blue-700">Log In</Link>
             <Link to="/Register">
               <button className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700">
                 Sign Up

@@ -1,196 +1,175 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { PASSING_SCORE, readAssessmentResult, readLevelResults } from "../utils/paragraphAssessment";
+import StudentSidebar from "../components/StudentSidebar";
 
 const ParagraphReading = () => {
+  const [assessmentResult] = useState(readAssessmentResult);
+  const [levelResults] = useState(readLevelResults);
+  const assessmentScore = assessmentResult?.score || 0;
+  const easyUnlocked = Boolean(assessmentResult);
+  const mediumUnlocked = assessmentScore >= PASSING_SCORE && levelResults.easy?.score >= PASSING_SCORE;
+  const hardUnlocked = mediumUnlocked && levelResults.medium?.score >= PASSING_SCORE;
+
+  const levels = [
+    {
+      key: "easy",
+      label: "EASY",
+      colorClass: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40",
+      description: "Build fluency with clear, everyday customer service vocabulary and natural pauses.",
+      path: "/easy-level-paragraph-reading",
+      unlocked: easyUnlocked,
+    },
+    {
+      key: "medium",
+      label: "MEDIUM",
+      colorClass: "bg-amber-500/20 text-amber-300 border border-amber-500/40",
+      description: "Manage longer sentences, professional problem-solving phrasing, and changing ideas.",
+      path: "/medium-level-paragraph-reading",
+      unlocked: mediumUnlocked,
+    },
+    {
+      key: "hard",
+      label: "HARD",
+      colorClass: "bg-rose-500/20 text-rose-300 border border-rose-500/40",
+      description: "Read precise, advanced professional language, technical explanations, and complex syntax.",
+      path: "/hard-level-paragraph-reading",
+      unlocked: hardUnlocked,
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen bg-gray-50 font-poppins">
+    <div className="flex min-h-screen bg-slate-950 font-poppins text-slate-100">
       {/* Sidebar */}
-      <div className="w-20 bg-white border-r border-gray-200 shadow-sm flex flex-col items-center py-6 gap-6 fixed h-screen">
-        {/* Logo */}
-        <Link to="/Dashboard" className="flex items-center justify-center">
-          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-        </Link>
-
-        {/* Navigation Icons */}
-        <nav className="flex flex-col gap-4">
-          {/* Dashboard */}
-          <Link to="/Dashboard" title="Dashboard">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M9 5h6" />
-              </svg>
-            </button>
-          </Link>
-
-          {/* Paragraph Reading */}
-          <Link to="/ParagraphReading" title="Paragraph Reading">
-            <button className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </button>
-          </Link>
-
-          {/* Mock Interview */}
-          <Link to="/MockInterview" title="Mock Interview">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </button>
-          </Link>
-
-          {/* Practice History */}
-          <Link to="/PracticeHistory" title="Practice History">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-          </Link>
-
-          {/* Performance Summary */}
-          <Link to="/PerformanceSummary" title="Performance Summary">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </button>
-          </Link>
-        </nav>
-
-        {/* Bottom Icons */}
-        <div className="mt-auto flex flex-col gap-4 pt-6 border-t border-gray-200">
-          {/* Profile */}
-          <Link to="/Profile" title="Profile">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
-          </Link>
-
-          {/* Logout */}
-          <Link to="/Login" title="Log Out">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
-          </Link>
-        </div>
-      </div>
+      <StudentSidebar />
 
       {/* Main Content */}
       <div className="flex-1 ml-20">
         {/* Header */}
-        <div className="bg-white shadow-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <h1 className="text-2xl font-bold text-gray-800">Paragraph Reading Practice</h1>
+        <header className="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-30 backdrop-blur-md px-8 py-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 className="text-xl font-bold text-slate-100">Paragraph Reading Practice</h1>
+            <span className="rounded-full bg-cyan-950 border border-cyan-800 px-3 py-0.5 text-xs font-semibold text-cyan-300">
+              Fluency & Cadence
+            </span>
           </div>
-        </div>
+        </header>
 
         {/* Page Content */}
-        <div className="container mx-auto px-4 py-12">
+        <main className="max-w-4xl mx-auto px-6 py-10 space-y-8">
           {/* Title Section */}
-          <div className="text-center mb-12">
-            <p className="text-lg text-gray-600">
-              Complete each level to unlock the next one and improve your communication skills step by step.
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-white">Master Your Speech Flow</h2>
+            <p className="text-sm text-slate-400 mt-2">
+              Complete each level with a 75+ score to unlock subsequent levels and build your speaking cadence step by step.
             </p>
           </div>
 
-          {/* Levels Grid */}
-          <div className="space-y-6 max-w-3xl mx-auto">
-            {/* Easy Level */}
-            <div className="flex items-center gap-8 p-6 rounded-xl border-2 bg-white border-gray-200 hover:shadow-lg transition-all">
-              <div className="flex-shrink-0">
-                <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm text-center p-2">
-                  EASY
+          {/* Pre-Assessment Card */}
+          <div className="rounded-2xl border border-cyan-900/60 bg-linear-to-br from-cyan-950 via-slate-900 to-slate-900 p-7 shadow-2xl shadow-cyan-950/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="space-y-1 max-w-xl">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 font-bold text-xs border border-cyan-500/40">
+                    ★
+                  </span>
+                  <h3 className="text-lg font-bold text-white">
+                    {assessmentResult ? "Pre-assessment Completed" : "Start with a Pre-assessment"}
+                  </h3>
                 </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-600 text-sm">
-                  Practice simple sentences
-                </p>
-                <p className="text-gray-500 text-sm mt-1">
-                  to build basic fluency and confidence
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Status: <span className="text-green-600 font-semibold">Available</span>
+                <p className="text-sm text-slate-300">
+                  {assessmentResult
+                    ? "You have already completed your initial pre-assessment. Practice and pass each level below to progress."
+                    : "Read one short paragraph to find your baseline speaking pace and unlock your personalized levels."}
                 </p>
               </div>
-              <div className="flex-shrink-0">
-                <Link to="/easy-level-paragraph-reading">
-                  <button className="px-8 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors shadow-md">
-                    Start
+
+              {assessmentResult ? (
+                <Link to="/paragraph-result/assessment" className="shrink-0">
+                  <button className="rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-lg shadow-cyan-950/40">
+                    View Assessment Result
                   </button>
                 </Link>
-              </div>
+              ) : (
+                <Link to="/paragraph-assessment/assessment" className="shrink-0">
+                  <button className="rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-lg shadow-cyan-950/40">
+                    Start Pre-assessment
+                  </button>
+                </Link>
+              )}
             </div>
 
-            {/* Medium Level */}
-            <div className="flex items-center gap-8 p-6 rounded-xl border-2 bg-white border-gray-200 hover:shadow-lg transition-all">
-              <div className="flex-shrink-0">
-                <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm text-center p-2">
-                  MEDIUM
-                </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-600 text-sm">
-                  Improve clarity and sentence structure
+            {assessmentResult && (
+              <div className="mt-4 flex flex-wrap items-center justify-between border-t border-slate-800/80 pt-3 gap-2">
+                <p className="text-xs font-semibold text-cyan-300">
+                  Pre-assessment Score: <strong className="text-white text-sm">{assessmentScore}/100</strong>
                 </p>
-                <p className="text-gray-500 text-sm mt-1">
-                  with moderate difficulty passages
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Status: <span className="text-green-600 font-semibold">Available</span>
-                </p>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950/70 border border-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
+                  <span className="h-2 w-2 rounded-full bg-cyan-400"></span>
+                  Assessment Completed (Single Attempt)
+                </span>
               </div>
-              <div className="flex-shrink-0">
-                <Link to="/medium-level-paragraph-reading">
-                  <button className="px-8 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors shadow-md">
-                    Start
-                  </button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Hard Level */}
-            <div className="flex items-center gap-8 p-6 rounded-xl border-2 bg-white border-gray-200 hover:shadow-lg transition-all">
-              <div className="flex-shrink-0">
-                <div className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm text-center p-2">
-                  HARD
-                </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-600 text-sm">
-                  Advanced practice
-                </p>
-                <p className="text-gray-500 text-sm mt-1">
-                  designed to simulate real interview responses
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Status: <span className="text-green-600 font-semibold">Available</span>
-                </p>
-              </div>
-              <div className="flex-shrink-0">
-                <Link to="/hard-level-paragraph-reading">
-                  <button className="px-8 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors shadow-md">
-                    Start
-                  </button>
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+
+          {/* Levels Grid */}
+          <div className="space-y-4">
+            {levels.map((level) => (
+              <div
+                key={level.key}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-2xl border p-6 transition shadow-xl ${
+                  level.unlocked
+                    ? "border-slate-800 bg-slate-900/90 hover:border-slate-700"
+                    : "border-slate-900 bg-slate-950/40 opacity-50 cursor-not-allowed"
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl p-2 text-center text-xs font-extrabold tracking-wider ${level.colorClass}`}
+                  >
+                    {level.label}
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-base text-white">{level.label} Level</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed max-w-lg">
+                      {level.description}
+                    </p>
+                    <p className="text-[11px] pt-1">
+                      Status:{" "}
+                      <span
+                        className={`font-semibold ${
+                          level.unlocked ? "text-emerald-400" : "text-slate-500"
+                        }`}
+                      >
+                        {level.unlocked ? "Available to Practice" : `Locked - requires ${PASSING_SCORE}+ points on previous level`}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 self-end sm:self-auto">
+                  {level.unlocked ? (
+                    <Link to={level.path}>
+                      <button className="rounded-xl bg-emerald-500 px-7 py-2.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-950/30">
+                        Start Reading
+                      </button>
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="cursor-not-allowed rounded-xl border border-slate-800 bg-slate-900/50 px-7 py-2.5 text-xs font-semibold text-slate-600"
+                    >
+                      Locked
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     </div>
   );
 };
 
 export default ParagraphReading;
-      

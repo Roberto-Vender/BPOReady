@@ -53,6 +53,70 @@ class AuthController extends Controller
         ]);
     }
 
+    public function adminLogin(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = User::where('email', strtolower($validated['email']))->first();
+
+        if (!$user || !in_array($user->role, ['admin', 'super_admin'], true) || !Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Invalid administrator credentials.',
+            ], 401);
+        }
+
+        return response()->json([
+            'message' => 'Administrator login successful.',
+            'user' => $user,
+        ]);
+    }
+
+    public function adminUsers(): JsonResponse
+    {
+        $users = User::query()
+            ->select(['id', 'name', 'email', 'role', 'created_at'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'total' => $users->count(),
+            'users' => $users,
+        ]);
+    }
+
+    public function createAdmin(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'creator_email' => ['required', 'email'],
+            'current_password' => ['required', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $creator = User::where('email', strtolower($validated['creator_email']))->first();
+
+        if (!$creator || $creator->role !== 'super_admin' || !Hash::check($validated['current_password'], $creator->password)) {
+            return response()->json(['message' => 'Only a verified Super Admin can create administrator accounts.'], 403);
+        }
+
+        $admin = User::create([
+            'name' => $validated['name'],
+            'email' => strtolower($validated['email']),
+            'password' => Hash::make($validated['password']),
+            'role' => 'admin',
+            'email_verified_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Administrator account created successfully.',
+            'user' => $admin,
+        ], 201);
+    }
+
     public function profile(Request $request): JsonResponse
     {
         $validated = $request->validate([
