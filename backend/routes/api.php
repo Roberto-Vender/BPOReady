@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InterviewFeedbackController;
 use App\Http\Controllers\Api\QuestionController;
+use App\Http\Controllers\Api\UserAssessmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -16,6 +17,10 @@ Route::put('/profile/password', [AuthController::class, 'changePassword']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/interview/feedback', [InterviewFeedbackController::class, 'analyze']);
+
+// User Assessment endpoints (Per-user database progress tracking)
+Route::get('/user/assessments', [UserAssessmentController::class, 'index']);
+Route::post('/user/assessments', [UserAssessmentController::class, 'store']);
 
 // Question endpoints
 Route::get('/questions', [QuestionController::class, 'index']);

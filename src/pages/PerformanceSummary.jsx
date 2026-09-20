@@ -1,10 +1,29 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import StudentSidebar from "../components/StudentSidebar";
-import { readAssessmentResult, readLevelResults } from "../utils/paragraphAssessment";
+import {
+  readAssessmentResult,
+  readLevelResults,
+  getCurrentUser,
+  syncUserAssessmentsFromApi,
+} from "../utils/paragraphAssessment";
 
 const PerformanceSummary = () => {
-  const assessment = readAssessmentResult();
-  const levels = readLevelResults();
+  const currentUser = getCurrentUser();
+  const [assessment, setAssessment] = useState(() => readAssessmentResult(currentUser));
+  const [levels, setLevels] = useState(() => readLevelResults(currentUser));
+
+  useEffect(() => {
+    if (!currentUser?.email) return;
+
+    syncUserAssessmentsFromApi(currentUser).then((data) => {
+      if (data) {
+        setAssessment(readAssessmentResult(currentUser));
+        setLevelLevels(readLevelResults(currentUser));
+      }
+    });
+  }, [currentUser?.email]);
+
+  const setLevelLevels = (val) => setLevels(val);
 
   const metrics = useMemo(() => {
     let totalScore = 0;
@@ -20,13 +39,13 @@ const PerformanceSummary = () => {
       }
     });
 
-    const avg = count > 0 ? Math.round(totalScore / count) : 82;
+    const avg = count > 0 ? Math.round(totalScore / count) : 0;
     return {
-      sessionsCount: count || 4,
+      sessionsCount: count,
       avgScore: avg,
-      confidence: avg >= 85 ? "High" : avg >= 75 ? "Moderate" : "Building",
-      clarity: avg >= 80 ? "Good" : "Needs Practice",
-      pacing: "Balanced (~130 WPM)",
+      confidence: count === 0 ? "Not Assessed" : avg >= 85 ? "High" : avg >= 75 ? "Moderate" : "Building",
+      clarity: count === 0 ? "Pending Practice" : avg >= 80 ? "Good" : "Needs Practice",
+      pacing: count === 0 ? "Pending Practice" : "Balanced (~135 WPM)",
     };
   }, [assessment, levels]);
 
@@ -40,7 +59,7 @@ const PerformanceSummary = () => {
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Performance Summary</h1>
-              <p className="text-xs text-slate-400">Overview of your communication and interview skills.</p>
+              <p className="text-xs text-slate-400">Overview of your communication and interview skills for {currentUser?.name || "Learner"}.</p>
             </div>
             <span className="rounded-full bg-cyan-950 border border-cyan-800 px-3 py-0.5 text-xs font-semibold text-cyan-300">
               Analytics
@@ -98,9 +117,11 @@ const PerformanceSummary = () => {
 
           {/* AI Improvement Coaching */}
           <div className="rounded-2xl border border-cyan-900/60 bg-linear-to-br from-cyan-950/30 via-slate-900 to-slate-900 p-6 shadow-xl space-y-3">
-            <h3 className="text-base font-bold text-cyan-300">AI Speech Coach Recommendation</h3>
+            <h3 className="text-base font-bold text-cyan-300">Coaching Next Steps</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              You are showing consistent progress in your vocal delivery and sentence structure. For your upcoming mock interview sessions, focus on taking a short 1-second breath pause before answering to eliminate instinctual filler sounds ("uhm").
+              {metrics.sessionsCount === 0
+                ? "Start your Pre-Assessment to calibrate your speech metrics and unlock structured leveling."
+                : "Great consistency! Keep practicing paragraph reading to reduce hesitation pauses and maintain a steady rhythm during mock interviews."}
             </p>
           </div>
         </div>

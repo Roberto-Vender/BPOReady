@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 const emptyForm = {
   name: "",
   email: "",
+  recovery_email: "",
   password: "",
   password_confirmation: "",
   current_password: "",
@@ -57,26 +58,38 @@ const CreateAdminAccount = () => {
           <form onSubmit={handleSubmit} className="mt-8 grid gap-5 md:grid-cols-2">
             {message && <p className="md:col-span-2 rounded-lg border border-emerald-800 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-300">{message}</p>}
             {error && <p className="md:col-span-2 rounded-lg border border-rose-900 bg-rose-950/50 px-4 py-3 text-sm text-rose-300">{error}</p>}
+            
             <label className="text-sm font-semibold text-slate-300">
               Admin name
               <input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 font-normal text-slate-100 outline-none focus:border-cyan-400" />
             </label>
+
             <label className="text-sm font-semibold text-slate-300">
-              Admin email
+              Admin email (Login ID)
               <input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 font-normal text-slate-100 outline-none focus:border-cyan-400" />
             </label>
+
+            <label className="text-sm font-semibold text-slate-300 md:col-span-2">
+              Recovery Gmail / Email (Optional)
+              <input type="email" placeholder="e.g. admin.recovery@gmail.com" value={form.recovery_email} onChange={(event) => setForm({ ...form, recovery_email: event.target.value })} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 font-normal text-slate-100 outline-none focus:border-cyan-400" />
+              <span className="text-xs text-slate-500 font-normal mt-1 block">Account recovery codes will be delivered to this address.</span>
+            </label>
+
             <label className="text-sm font-semibold text-slate-300">
               Temporary password
               <input required minLength="8" type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 font-normal text-slate-100 outline-none focus:border-cyan-400" />
             </label>
+
             <label className="text-sm font-semibold text-slate-300">
               Confirm password
               <input required minLength="8" type="password" value={form.password_confirmation} onChange={(event) => setForm({ ...form, password_confirmation: event.target.value })} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 font-normal text-slate-100 outline-none focus:border-cyan-400" />
             </label>
+
             <label className="text-sm font-semibold text-slate-300 md:col-span-2">
               Your current Super Admin password
               <input required type="password" value={form.current_password} onChange={(event) => setForm({ ...form, current_password: event.target.value })} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 font-normal text-slate-100 outline-none focus:border-cyan-400 md:max-w-xl" />
             </label>
+
             <div className="flex flex-wrap gap-3 md:col-span-2">
               <button type="submit" disabled={isSubmitting} className="rounded-lg bg-cyan-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60">
                 {isSubmitting ? "Creating account..." : "Create admin account"}

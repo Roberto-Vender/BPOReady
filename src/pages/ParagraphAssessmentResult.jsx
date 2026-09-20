@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getPracticeExercises, paragraphContent, readAssessmentResult, readLevelResults } from "../utils/paragraphAssessment";
+import {
+  getPracticeExercises,
+  paragraphContent,
+  readAssessmentResult,
+  readLevelResults,
+  getCurrentUser,
+} from "../utils/paragraphAssessment";
 import PacingExercise from "./PacingExercise";
 import StudentSidebar from "../components/StudentSidebar";
 
@@ -16,7 +22,8 @@ const speakWord = (word) => {
 const ParagraphAssessmentResult = ({ level: levelProp }) => {
   const { level: routeLevel } = useParams();
   const level = routeLevel || levelProp || "assessment";
-  const result = level === "assessment" ? readAssessmentResult() : readLevelResults()[level];
+  const currentUser = getCurrentUser();
+  const result = level === "assessment" ? readAssessmentResult(currentUser) : readLevelResults(currentUser)[level];
   const isPassed = result?.score >= 75;
   const nextPath = level === "assessment" ? "/ParagraphReading" : level === "easy" ? "/medium-level-paragraph-reading" : level === "medium" ? "/hard-level-paragraph-reading" : "/ParagraphReading";
   const retryPath = level === "assessment" ? "/paragraph-assessment/assessment" : `/paragraph-assessment/${level}`;

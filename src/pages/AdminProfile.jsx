@@ -4,7 +4,10 @@ import AdminSidebar from "../components/AdminSidebar";
 const AdminProfile = () => {
   const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
-  const [profileForm, setProfileForm] = useState({ name: user?.name || "" });
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || "",
+    recovery_email: user?.recovery_email || "",
+  });
   const [passwordForm, setPasswordForm] = useState({
     current_password: "",
     password: "",
@@ -28,7 +31,10 @@ const AdminProfile = () => {
       })
       .then((freshUser) => {
         setUser(freshUser);
-        setProfileForm({ name: freshUser.name });
+        setProfileForm({
+          name: freshUser.name || "",
+          recovery_email: freshUser.recovery_email || "",
+        });
         localStorage.setItem("user", JSON.stringify(freshUser));
       })
       .catch((loadError) => setError(loadError.message));
@@ -52,15 +58,22 @@ const AdminProfile = () => {
       const response = await fetch(`${apiUrl}/api/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ email: user.email, name: profileForm.name }),
+        body: JSON.stringify({
+          email: user.email,
+          name: profileForm.name,
+          recovery_email: profileForm.recovery_email.trim(),
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Unable to update profile.");
 
       setUser(data.user);
-      setProfileForm({ name: data.user.name });
+      setProfileForm({
+        name: data.user.name || "",
+        recovery_email: data.user.recovery_email || "",
+      });
       localStorage.setItem("user", JSON.stringify(data.user));
-      setMessage("Profile name updated successfully!");
+      setMessage("Profile details and recovery email updated successfully!");
     } catch (submitError) {
       setError(submitError.message);
     } finally {
@@ -108,7 +121,7 @@ const AdminProfile = () => {
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Admin Profile</h1>
-              <p className="text-xs text-slate-400">Manage your credentials and administrator profile.</p>
+              <p className="text-xs text-slate-400">Manage your credentials, recovery settings, and administrator profile.</p>
             </div>
             <span className="rounded-full bg-blue-950 border border-blue-800 px-3 py-0.5 text-xs font-semibold text-blue-300">
               Admin Portal
@@ -140,31 +153,57 @@ const AdminProfile = () => {
           )}
 
           {/* Profile Information */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-3">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
             <h2 className="text-base font-bold text-cyan-300">Account Information</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
               <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
                 <span className="text-slate-500 uppercase tracking-wider block mb-1 font-semibold">
                   Admin Name
                 </span>
-                <p className="text-sm font-bold text-white">{user?.name || "Admin"}</p>
+                <p className="text-sm font-bold text-white truncate">{user?.name || "Admin"}</p>
               </div>
+
               <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
                 <span className="text-slate-500 uppercase tracking-wider block mb-1 font-semibold">
-                  Email Address
+                  Admin Email
                 </span>
-                <p className="text-sm font-bold text-white">{user?.email || "admin@bpoready.com"}</p>
+                <p className="text-sm font-bold text-white truncate">{user?.email || "admin@bpoready.com"}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-slate-500 uppercase tracking-wider font-semibold">
+                    Recovery Email
+                  </span>
+                  {user?.recovery_email ? (
+                    <span className="rounded bg-emerald-950 border border-emerald-700/60 px-1.5 py-0.2 text-[10px] font-bold text-emerald-300">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="rounded bg-amber-950 border border-amber-700/60 px-1.5 py-0.2 text-[10px] font-bold text-amber-300">
+                      Using Primary
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-bold text-white truncate">
+                  {user?.recovery_email || "Not configured yet"}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {user?.recovery_email
+                    ? "Recovery codes will route here."
+                    : "Add below to route recovery codes to a dedicated Gmail."}
+                </p>
               </div>
             </div>
           </div>
 
           {/* Forms Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Update Name */}
+            {/* Update Profile & Recovery Email */}
             <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
               <div className="border-b border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-cyan-300">Update Name</h3>
-                <p className="text-xs text-slate-400">Change your administrator display name.</p>
+                <h3 className="text-base font-bold text-cyan-300">Update Profile Details</h3>
+                <p className="text-xs text-slate-400">Change your administrator name and recovery Gmail.</p>
               </div>
               <form onSubmit={handleProfileSubmit} className="space-y-4">
                 <div>
@@ -180,12 +219,33 @@ const AdminProfile = () => {
                     className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
                   />
                 </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      Recovery Gmail / Email
+                    </label>
+                    <span className="text-[10px] text-cyan-400 font-medium">Account Recovery</span>
+                  </div>
+                  <input
+                    name="recovery_email"
+                    type="email"
+                    value={profileForm.recovery_email}
+                    onChange={handleProfileChange}
+                    placeholder="e.g. admin.recovery@gmail.com"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Password recovery codes will be delivered to this email address.
+                  </p>
+                </div>
+
                 <button
                   type="submit"
                   disabled={isSavingProfile}
                   className="w-full rounded-lg bg-cyan-400 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition shadow-md shadow-cyan-950/40 disabled:opacity-60"
                 >
-                  {isSavingProfile ? "Saving..." : "Save Name"}
+                  {isSavingProfile ? "Saving..." : "Save Profile Details"}
                 </button>
               </form>
             </div>

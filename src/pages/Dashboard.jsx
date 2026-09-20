@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import StudentSidebar from "../components/StudentSidebar";
+import { syncUserAssessmentsFromApi, getCurrentUser } from "../utils/paragraphAssessment";
 
 const Dashboard = () => {
-  const user = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "{}");
-    } catch {
-      return {};
+  const user = getCurrentUser() || {};
+
+  useEffect(() => {
+    if (user?.email) {
+      syncUserAssessmentsFromApi(user);
     }
-  })();
+  }, [user?.email]);
 
   const firstName = user?.name ? user.name.split(" ")[0] : "Learner";
 

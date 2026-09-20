@@ -18,12 +18,14 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'recovery_email' => ['nullable', 'string', 'email', 'max:255'],
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'email' => strtolower($validated['email']),
             'password' => Hash::make($validated['password']),
+            'recovery_email' => !empty($validated['recovery_email']) ? strtolower(trim($validated['recovery_email'])) : null,
         ]);
 
         return response()->json([
@@ -39,7 +41,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', strtolower($validated['email']))->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
@@ -77,7 +79,7 @@ class AuthController extends Controller
     public function adminUsers(): JsonResponse
     {
         $users = User::query()
-            ->select(['id', 'name', 'email', 'role', 'created_at'])
+            ->select(['id', 'name', 'email', 'recovery_email', 'role', 'created_at'])
             ->latest()
             ->get();
 
@@ -95,6 +97,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'recovery_email' => ['nullable', 'string', 'email', 'max:255'],
         ]);
 
         $creator = User::where('email', strtolower($validated['creator_email']))->first();
@@ -108,6 +111,7 @@ class AuthController extends Controller
             'email' => strtolower($validated['email']),
             'password' => Hash::make($validated['password']),
             'role' => 'admin',
+            'recovery_email' => !empty($validated['recovery_email']) ? strtolower(trim($validated['recovery_email'])) : null,
             'email_verified_at' => now(),
         ]);
 
@@ -123,7 +127,7 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', strtolower($validated['email']))->first();
 
         if (!$user) {
             return response()->json(['message' => 'User not found.'], 404);
@@ -136,16 +140,29 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'recovery_email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', strtolower($validated['email']))->first();
 
         if (!$user) {
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        $user->update(['name' => $validated['name']]);
+        $updateData = [];
+
+        if ($request->has('name')) {
+            $updateData['name'] = $validated['name'];
+        }
+
+        if ($request->has('recovery_email')) {
+            $updateData['recovery_email'] = !empty($validated['recovery_email'])
+                ? strtolower(trim($validated['recovery_email']))
+                : null;
+        }
+
+        $user->update($updateData);
 
         return response()->json([
             'message' => 'Profile updated successfully.',
@@ -161,7 +178,7 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', strtolower($validated['email']))->first();
 
         if (!$user || !Hash::check($validated['current_password'], $user->password)) {
             return response()->json(['message' => 'Current password is incorrect.'], 422);
@@ -178,8 +195,10 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $email = strtolower($validated['email']);
-        $user = User::where('email', $email)->first();
+        $inputEmail = strtolower($validated['email']);
+        $user = User::where('email', $inputEmail)
+            ->orWhere('recovery_email', $inputEmail)
+            ->first();
 
         if (!$user) {
             return response()->json([
@@ -188,24 +207,58 @@ class AuthController extends Controller
         }
 
         $code = (string) random_int(100000, 999999);
+        $recipientEmail = !empty($user->recovery_email) ? $user->recovery_email : $user->email;
+        $isRecovery = !empty($user->recovery_email);
 
+        // Store reset token under user's primary account email
         DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $email],
+            ['email' => $user->email],
             [
                 'token' => Hash::make($code),
                 'created_at' => now(),
             ]
         );
 
-        Mail::raw(
-            "Your Puzzle Master password reset code is: {$code}\n\nThis code expires in 15 minutes. If you did not request a password reset, you can ignore this email.",
-            function ($message) use ($email): void {
-                $message->to($email)->subject('Puzzle Master password reset code');
-            }
-        );
+        // Also index under inputEmail if different from primary email
+        if ($inputEmail !== $user->email) {
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $inputEmail],
+                [
+                    'token' => Hash::make($code),
+                    'created_at' => now(),
+                ]
+            );
+        }
+
+        try {
+            Mail::raw(
+                "Hello {$user->name},\n\n"
+                . "We received a request to recover and reset the password for your BPOReady account ({$user->email}).\n\n"
+                . "Your 6-digit password recovery code is: {$code}\n\n"
+                . "This code will expire in 15 minutes. If you did not request a password reset, you can safely ignore this email.\n\n"
+                . "Best regards,\nBPOReady Security Team",
+                function ($message) use ($recipientEmail): void {
+                    $message->to($recipientEmail)->subject('BPOReady - Account Recovery Code');
+                }
+            );
+        } catch (\Throwable $mailException) {
+            \Illuminate\Support\Facades\Log::error('SMTP Mail Sending Failed: ' . $mailException->getMessage());
+            \Illuminate\Support\Facades\Log::info("Recovery Code for {$user->email} (sent to {$recipientEmail}): {$code}");
+
+            return response()->json([
+                'message' => 'Failed to send recovery email. Google rejected your SMTP credentials. Please generate a new 16-character Google App Password and update MAIL_PASSWORD in backend/.env.',
+            ], 500);
+        }
+
+        $maskedRecipient = self::maskEmail($recipientEmail);
 
         return response()->json([
-            'message' => 'A six-digit password reset code has been sent to your email.',
+            'message' => $isRecovery
+                ? "A six-digit recovery code has been sent to your recovery email ({$maskedRecipient})."
+                : "A six-digit recovery code has been sent to your email ({$maskedRecipient}).",
+            'account_email' => $user->email,
+            'sent_to' => $maskedRecipient,
+            'is_recovery_email' => $isRecovery,
         ]);
     }
 
@@ -217,22 +270,53 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $email = strtolower($validated['email']);
-        $reset = DB::table('password_reset_tokens')->where('email', $email)->first();
-
-        if (!$reset || !$reset->created_at || now()->diffInMinutes($reset->created_at) > 15 || !Hash::check($validated['code'], $reset->token)) {
-            return response()->json(['message' => 'The reset code is invalid or has expired.'], 422);
-        }
-
-        $user = User::where('email', $email)->first();
+        $inputEmail = strtolower($validated['email']);
+        $user = User::where('email', $inputEmail)
+            ->orWhere('recovery_email', $inputEmail)
+            ->first();
 
         if (!$user) {
             return response()->json(['message' => 'The reset code is invalid or has expired.'], 422);
         }
 
-        $user->update(['password' => Hash::make($validated['password'])]);
-        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        // Check reset token for the user's primary email or input email
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $user->email)
+            ->orWhere('email', $inputEmail)
+            ->first();
 
-        return response()->json(['message' => 'Password reset successfully.']);
+        if (!$reset || !$reset->created_at || now()->diffInMinutes($reset->created_at) > 15 || !Hash::check($validated['code'], $reset->token)) {
+            return response()->json(['message' => 'The reset code is invalid or has expired.'], 422);
+        }
+
+        $user->update(['password' => Hash::make($validated['password'])]);
+
+        // Clean up reset tokens
+        DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+        DB::table('password_reset_tokens')->where('email', $inputEmail)->delete();
+
+        return response()->json(['message' => 'Password reset successfully. You can now log in with your new password.']);
+    }
+
+    /**
+     * Mask email address for user privacy (e.g. j***n@gmail.com).
+     */
+    private static function maskEmail(string $email): string
+    {
+        $parts = explode('@', $email);
+        if (count($parts) !== 2) {
+            return $email;
+        }
+
+        $name = $parts[0];
+        $domain = $parts[1];
+
+        if (strlen($name) <= 2) {
+            $maskedName = substr($name, 0, 1) . '***';
+        } else {
+            $maskedName = substr($name, 0, 1) . str_repeat('*', min(5, strlen($name) - 2)) . substr($name, -1);
+        }
+
+        return $maskedName . '@' . $domain;
     }
 }

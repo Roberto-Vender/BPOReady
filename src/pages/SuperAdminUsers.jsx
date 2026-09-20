@@ -37,7 +37,8 @@ const SuperAdminUsers = () => {
     return users.filter((u) => {
       const matchesSearch =
         u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchQuery.toLowerCase());
+        u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.recovery_email?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = roleFilter === "all" || (u.role || "user") === roleFilter;
       return matchesSearch && matchesRole;
     });
@@ -114,7 +115,7 @@ const SuperAdminUsers = () => {
                 Registered Platform Users
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-300">
-                Monitor all registered applicants, staff members, and administrators across the BPOReady platform.
+                Monitor all registered applicants, staff members, and administrators across the BPOReady platform along with their recovery email configuration.
               </p>
             </div>
 
@@ -171,7 +172,7 @@ const SuperAdminUsers = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search users by name or email..."
+                placeholder="Search users by name, login email, or recovery Gmail..."
                 className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm text-slate-200 focus:border-cyan-400 focus:outline-none placeholder:text-slate-500"
               />
             </div>
@@ -205,7 +206,8 @@ const SuperAdminUsers = () => {
                 <thead className="bg-slate-950/80 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
                   <tr>
                     <th className="px-6 py-4 font-semibold">User</th>
-                    <th className="px-6 py-4 font-semibold">Email</th>
+                    <th className="px-6 py-4 font-semibold">Login Email</th>
+                    <th className="px-6 py-4 font-semibold">Recovery Gmail / Email</th>
                     <th className="px-6 py-4 font-semibold">Role</th>
                     <th className="px-6 py-4 font-semibold">Registered</th>
                   </tr>
@@ -231,6 +233,18 @@ const SuperAdminUsers = () => {
                         </td>
                         <td className="px-6 py-4 text-slate-300 font-mono text-xs">
                           {u.email}
+                        </td>
+                        <td className="px-6 py-4">
+                          {u.recovery_email ? (
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs text-cyan-300">{u.recovery_email}</span>
+                              <span className="rounded bg-emerald-950/80 border border-emerald-700/60 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-300">
+                                Configured
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-500 italic">None (Uses primary)</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           {isSuper && (

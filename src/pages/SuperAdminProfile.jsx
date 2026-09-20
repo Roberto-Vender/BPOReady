@@ -5,7 +5,10 @@ const SuperAdminProfile = () => {
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
-  const [profileForm, setProfileForm] = useState({ name: user?.name || "" });
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || "",
+    recovery_email: user?.recovery_email || "",
+  });
   const [passwordForm, setPasswordForm] = useState({
     current_password: "",
     password: "",
@@ -29,7 +32,10 @@ const SuperAdminProfile = () => {
       })
       .then((freshUser) => {
         setUser(freshUser);
-        setProfileForm({ name: freshUser.name });
+        setProfileForm({
+          name: freshUser.name || "",
+          recovery_email: freshUser.recovery_email || "",
+        });
         localStorage.setItem("user", JSON.stringify(freshUser));
       })
       .catch((loadError) => setError(loadError.message));
@@ -53,15 +59,22 @@ const SuperAdminProfile = () => {
       const response = await fetch(`${apiUrl}/api/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ email: user.email, name: profileForm.name }),
+        body: JSON.stringify({
+          email: user.email,
+          name: profileForm.name,
+          recovery_email: profileForm.recovery_email.trim(),
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Unable to update profile.");
 
       setUser(data.user);
-      setProfileForm({ name: data.user.name });
+      setProfileForm({
+        name: data.user.name || "",
+        recovery_email: data.user.recovery_email || "",
+      });
       localStorage.setItem("user", JSON.stringify(data.user));
-      setMessage("Profile name updated successfully!");
+      setMessage("Super Admin profile and recovery email updated successfully!");
     } catch (submitError) {
       setError(submitError.message);
     } finally {
@@ -174,7 +187,7 @@ const SuperAdminProfile = () => {
                 Super Admin Profile
               </h1>
               <p className="mt-2 max-w-xl text-sm text-slate-300">
-                Manage your credentials, update your display name, and securely change your administrator password.
+                Manage your credentials, configure your recovery Gmail address, and securely change your administrator password.
               </p>
             </div>
             <div className="rounded-xl border border-cyan-800/80 bg-slate-950/60 px-5 py-4">
@@ -208,12 +221,57 @@ const SuperAdminProfile = () => {
           </div>
         )}
 
+        {/* Account Details Overview */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+          <h2 className="text-base font-bold text-cyan-300">Account Information</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+              <span className="text-slate-500 uppercase tracking-wider block mb-1 font-semibold">
+                Super Admin Name
+              </span>
+              <p className="text-sm font-bold text-white truncate">{user?.name || "Super Admin"}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+              <span className="text-slate-500 uppercase tracking-wider block mb-1 font-semibold">
+                Primary Login Email
+              </span>
+              <p className="text-sm font-bold text-white truncate">{user?.email || "admin@bpoready.com"}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-slate-500 uppercase tracking-wider font-semibold">
+                  Recovery Gmail / Email
+                </span>
+                {user?.recovery_email ? (
+                  <span className="rounded bg-emerald-950 border border-emerald-700/60 px-1.5 py-0.2 text-[10px] font-bold text-emerald-300">
+                    Active
+                  </span>
+                ) : (
+                  <span className="rounded bg-amber-950 border border-amber-700/60 px-1.5 py-0.2 text-[10px] font-bold text-amber-300">
+                    Using Primary
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-bold text-white truncate">
+                {user?.recovery_email || "Not configured yet"}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-1">
+                {user?.recovery_email
+                  ? "Recovery codes will route here."
+                  : "Add below to route recovery codes to a dedicated Gmail."}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Update Name Form Card */}
+          {/* Update Details Form Card */}
           <section className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-5">
             <div className="border-b border-slate-800 pb-3">
               <h2 className="text-base font-bold text-cyan-300">Update Profile Details</h2>
-              <p className="text-xs text-slate-400">Change your administrator display name.</p>
+              <p className="text-xs text-slate-400">Change your display name and recovery email.</p>
             </div>
 
             <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -234,7 +292,7 @@ const SuperAdminProfile = () => {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Email Address
+                  Login Email (Account ID)
                 </label>
                 <input
                   type="email"
@@ -245,6 +303,26 @@ const SuperAdminProfile = () => {
                 />
                 <span className="text-[11px] text-slate-500 mt-1 block">
                   Email is locked to your Super Admin credential.
+                </span>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    Recovery Gmail / Email
+                  </label>
+                  <span className="text-[10px] text-cyan-400 font-medium">Account Recovery</span>
+                </div>
+                <input
+                  name="recovery_email"
+                  type="email"
+                  value={profileForm.recovery_email}
+                  onChange={handleProfileChange}
+                  placeholder="e.g. superadmin.recovery@gmail.com"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-200 focus:border-cyan-400 focus:outline-none"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Password reset codes for your Super Admin account will be sent to this address.
                 </span>
               </div>
 

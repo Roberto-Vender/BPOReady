@@ -110,6 +110,7 @@ const StudentSidebar = () => {
             onClick={() => {
               localStorage.removeItem("user");
               localStorage.removeItem("token");
+              sessionStorage.clear();
             }}
             className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 rounded-xl transition-all"
           >

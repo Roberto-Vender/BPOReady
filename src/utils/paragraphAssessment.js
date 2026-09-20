@@ -150,25 +150,156 @@ export function analyzeParagraph(text, targetText, durationSeconds = 0, level = 
   };
 }
 
-export function readLevelResults() {
+/**
+ * Get current authenticated user from storage.
+ */
+export function getCurrentUser() {
   try {
-    return JSON.parse(localStorage.getItem(PARAGRAPH_LEVEL_RESULTS_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-export function readAssessmentResult() {
-  try {
-    return JSON.parse(localStorage.getItem(PARAGRAPH_ASSESSMENT_KEY) || "null");
+    return JSON.parse(localStorage.getItem("user") || "null");
   } catch {
     return null;
   }
 }
 
+/**
+ * Build a user-scoped storage key so User 1's data does not collide with User 2's data.
+ */
+export function getUserKey(baseKey, user = null) {
+  const activeUser = user || getCurrentUser();
+  const identifier = activeUser?.id || activeUser?.email;
+  return identifier ? `${baseKey}_${identifier}` : `${baseKey}_guest`;
+}
+
+/**
+ * Read paragraph level results scoped to the current user.
+ */
+export function readLevelResults(user = null) {
+  try {
+    const key = getUserKey(PARAGRAPH_LEVEL_RESULTS_KEY, user);
+    return JSON.parse(localStorage.getItem(key) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Read baseline pre-assessment result scoped to the current user.
+ */
+export function readAssessmentResult(user = null) {
+  try {
+    const key = getUserKey(PARAGRAPH_ASSESSMENT_KEY, user);
+    return JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save assessment or level result scoped to user and synchronize with Laravel API.
+ */
+export async function saveAssessmentResult(result, level = "assessment", user = null) {
+  const activeUser = user || getCurrentUser();
+  const assessmentKey = getUserKey(PARAGRAPH_ASSESSMENT_KEY, activeUser);
+  const levelKey = getUserKey(PARAGRAPH_LEVEL_RESULTS_KEY, activeUser);
+
+  // 1. Save locally for instant, offline-first UI response
+  if (level === "assessment") {
+    localStorage.setItem(assessmentKey, JSON.stringify(result));
+  } else {
+    const currentLevels = JSON.parse(localStorage.getItem(levelKey) || "{}");
+    localStorage.setItem(levelKey, JSON.stringify({ ...currentLevels, [level]: result }));
+  }
+
+  // 2. Persist to PostgreSQL database via Laravel API
+  if (activeUser?.email) {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+      await fetch(`${apiUrl}/api/user/assessments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email: activeUser.email,
+          level,
+          score: result.score,
+          total_words: result.totalWords,
+          words_per_minute: result.wordsPerMinute,
+          filler_penalty: result.fillerPenalty || 0,
+          pronunciation_penalty: result.pronunciationPenalty || 0,
+          pace_penalty: result.pacePenalty || 0,
+          fillers: result.fillers || [],
+          filler_counts: result.fillerCounts || {},
+          wrong_words: result.wrongWords || [],
+          transcription: result.transcription || "",
+          details: result,
+        }),
+      });
+    } catch (apiError) {
+      console.warn("Could not sync assessment to server database:", apiError);
+    }
+  }
+}
+
+/**
+ * Pull the user's latest assessment data from the database and refresh local cache.
+ */
+export async function syncUserAssessmentsFromApi(user = null) {
+  const activeUser = user || getCurrentUser();
+  if (!activeUser?.email) return { assessment: null, levels: {}, history: [] };
+
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const res = await fetch(`${apiUrl}/api/user/assessments?email=${encodeURIComponent(activeUser.email)}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error("Failed to fetch user assessments");
+
+    const data = await res.json();
+    const assessmentKey = getUserKey(PARAGRAPH_ASSESSMENT_KEY, activeUser);
+    const levelKey = getUserKey(PARAGRAPH_LEVEL_RESULTS_KEY, activeUser);
+
+    if (data.assessment) {
+      const formatted = {
+        ...data.assessment.details,
+        score: data.assessment.score,
+        totalWords: data.assessment.total_words,
+        wordsPerMinute: data.assessment.words_per_minute,
+        completedAt: data.assessment.completed_at,
+        level: data.assessment.level,
+      };
+      localStorage.setItem(assessmentKey, JSON.stringify(formatted));
+    }
+
+    if (data.levels && Object.keys(data.levels).length > 0) {
+      const formattedLevels = {};
+      Object.entries(data.levels).forEach(([lvl, item]) => {
+        formattedLevels[lvl] = {
+          ...item.details,
+          score: item.score,
+          totalWords: item.total_words,
+          wordsPerMinute: item.words_per_minute,
+          completedAt: item.completed_at,
+          level: item.level,
+        };
+      });
+      localStorage.setItem(levelKey, JSON.stringify(formattedLevels));
+    }
+
+    return data;
+  } catch (err) {
+    console.warn("Could not sync user assessments from API:", err);
+    return {
+      assessment: readAssessmentResult(activeUser),
+      levels: readLevelResults(activeUser),
+      history: [],
+    };
+  }
+}
+
 export function getParagraphChunks(text) {
   if (!text) return [];
-  // Split into sentences and natural phrase boundaries
   const clauses = text.split(/(?<=[.,;:!?])\s+/);
   const chunks = [];
 
@@ -177,7 +308,6 @@ export function getParagraphChunks(text) {
     if (words.length <= 6) {
       if (clause.trim()) chunks.push(clause.trim());
     } else {
-      // Break longer clauses into 3-5 word chunks
       let current = [];
       words.forEach((w) => {
         current.push(w);
@@ -200,7 +330,6 @@ export function getPracticeExercises(result, level = "assessment") {
   const targetWpm = result?.targetWordsPerMinute || targetWordsPerMinute[level] || 140;
   const isPacingIssue = result?.pacing === "Too slow" || result?.pacing === "Too fast" || (result?.pacePenalty && result.pacePenalty > 0);
 
-  // Always supply a pacing exercise, marked as primary if pacing penalty occurred
   exercises.push({
     type: "pacing",
     title: "Interactive Pacing Drill",

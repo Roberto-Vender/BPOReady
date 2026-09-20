@@ -1,15 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { PASSING_SCORE, readAssessmentResult, readLevelResults } from "../utils/paragraphAssessment";
+import {
+  PASSING_SCORE,
+  readAssessmentResult,
+  readLevelResults,
+  syncUserAssessmentsFromApi,
+  getCurrentUser,
+} from "../utils/paragraphAssessment";
 import StudentSidebar from "../components/StudentSidebar";
 
 const ParagraphReading = () => {
-  const [assessmentResult] = useState(readAssessmentResult);
-  const [levelResults] = useState(readLevelResults);
+  const currentUser = getCurrentUser();
+  const [assessmentResult, setAssessmentResult] = useState(() => readAssessmentResult(currentUser));
+  const [levelResults, setLevelResults] = useState(() => readLevelResults(currentUser));
+
+  useEffect(() => {
+    if (!currentUser?.email) return;
+
+    syncUserAssessmentsFromApi(currentUser).then((data) => {
+      if (data) {
+        setAssessmentResult(readAssessmentResult(currentUser));
+        setLevelResults(readLevelResults(currentUser));
+      }
+    });
+  }, [currentUser?.email]);
+
   const assessmentScore = assessmentResult?.score || 0;
   const easyUnlocked = Boolean(assessmentResult);
-  const mediumUnlocked = assessmentScore >= PASSING_SCORE && levelResults.easy?.score >= PASSING_SCORE;
-  const hardUnlocked = mediumUnlocked && levelResults.medium?.score >= PASSING_SCORE;
+  const mediumUnlocked = assessmentScore >= PASSING_SCORE && (levelResults.easy?.score || 0) >= PASSING_SCORE;
+  const hardUnlocked = mediumUnlocked && (levelResults.medium?.score || 0) >= PASSING_SCORE;
 
   const levels = [
     {
@@ -150,16 +169,16 @@ const ParagraphReading = () => {
                 <div className="shrink-0 self-end sm:self-auto">
                   {level.unlocked ? (
                     <Link to={level.path}>
-                      <button className="rounded-xl bg-emerald-500 px-7 py-2.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-950/30">
-                        Start Reading
+                      <button className="rounded-xl bg-slate-800 border border-slate-700 px-6 py-2.5 text-xs font-bold text-cyan-300 hover:bg-slate-700 transition shadow-md">
+                        Start Practice →
                       </button>
                     </Link>
                   ) : (
                     <button
                       disabled
-                      className="cursor-not-allowed rounded-xl border border-slate-800 bg-slate-900/50 px-7 py-2.5 text-xs font-semibold text-slate-600"
+                      className="rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-2.5 text-xs font-semibold text-slate-600 cursor-not-allowed"
                     >
-                      Locked
+                      Locked 🔒
                     </button>
                   )}
                 </div>
